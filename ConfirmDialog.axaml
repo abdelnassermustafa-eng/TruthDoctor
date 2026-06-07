@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TruthDoctor.ConfirmDialog"
+        Width="350" Height="150"
+        Title="Confirmation">
+
+    <StackPanel Margin="20" Spacing="15">
+        <TextBlock Name="MessageText"
+                   Text="Message"
+                   TextWrapping="Wrap"/>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10">
+
+            <Button Content="Yes"
+                    Width="80"
+                    Click="OnYesClicked"/>
+
+            <Button Content="No"
+                    Width="80"
+                    Click="OnNoClicked"/>
+        </StackPanel>
+    </StackPanel>
+
+</Window>

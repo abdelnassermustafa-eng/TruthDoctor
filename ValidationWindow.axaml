@@ -1,0 +1,127 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TruthDoctor.ValidationWindow"
+        Title="Network Validation"
+        Width="1000"
+        Height="750">
+
+    <ScrollViewer>
+        <StackPanel Margin="15" Spacing="10">
+
+            <!-- Connection Status -->
+            <Border Background="#0f172a"
+                    Padding="6"
+                    CornerRadius="4">
+                <TextBlock Name="ConnectionStatusText"
+                           Text="Connecting..."
+                           Foreground="White"
+                           FontWeight="Bold"/>
+            </Border>
+
+            <!-- Header -->
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Text="Network Validation &amp; Troubleshooting"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"/>
+
+                <CheckBox Name="AutoRefreshCheckBox"
+                          Content="Auto refresh (20s)"
+                          IsChecked="True"
+                          Grid.Column="1"
+                          VerticalAlignment="Center"
+                          Margin="0,0,10,0"
+                          Checked="OnAutoRefreshToggled"
+                          Unchecked="OnAutoRefreshToggled"/>
+
+                <Button Content="Refresh"
+                        Name="RefreshButton"
+                        Click="OnRefreshClicked"
+                        Grid.Column="2"/>
+            </Grid>
+
+            <!-- Summary -->
+            <Border Background="#1e293b"
+                    Padding="10"
+                    CornerRadius="6"
+                    Margin="0,0,0,15">
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <TextBlock Name="ScoreText"
+                               Foreground="White"
+                               FontSize="18"
+                               FontWeight="Bold"/>
+                    <TextBlock Name="PassText"
+                               Foreground="#22c55e"
+                               FontWeight="Bold"/>
+                    <TextBlock Name="FailText"
+                               Foreground="#ef4444"
+                               FontWeight="Bold"/>
+                    <TextBlock Name="TimestampText"
+                               Foreground="White"/>
+                </StackPanel>
+            </Border>
+            <!-- Validation Results -->
+            <TextBlock Text="Validation Results"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="ResultsGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="200"/>
+
+            <!-- VPC Inventory -->
+            <TextBlock Text="VPC Inventory"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="VpcGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="150"/>
+
+            <!-- Subnet Inventory -->
+            <TextBlock Text="Subnet Inventory"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="SubnetGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="150"/>
+
+            <!-- Route Table Inventory -->
+            <TextBlock Text="Route Table Inventory"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="RouteTableGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="150"/>
+            <!-- EC2 Inventory -->
+            <TextBlock Text="EC2 Inventory"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="InstanceGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="150"/>
+
+            <!-- Internet Gateway Inventory -->
+            <TextBlock Text="Internet Gateway Inventory"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="IgwGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="120"/>
+
+            <!-- NAT Gateway Inventory -->
+            <TextBlock Text="NAT Gateway Inventory"
+                       FontSize="16"
+                       FontWeight="Bold"/>
+            <DataGrid Name="NatGatewayGrid"
+                      AutoGenerateColumns="True"
+                      IsReadOnly="True"
+                      Height="120"/>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>
