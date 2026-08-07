@@ -1,0 +1,189 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="TruthDoctor.Controls.Workbench.WorkbenchTopBar">
+
+    <Grid RowDefinitions="32,64">
+
+        <Border Grid.Row="0"
+                Background="#081321"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+            <Grid ColumnDefinitions="210,*"
+                  Margin="12,0">
+
+                <TextBlock Text="◆  TruthDoctor V2"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Foreground="#F8FAFC"
+                           VerticalAlignment="Center"/>
+
+                <Menu Grid.Column="1"
+                      Background="Transparent"
+                      Foreground="#E2E8F0">
+
+                    <MenuItem Header="File">
+                        <MenuItem Header="Connect"
+                                  Click="ConnectMenuItem_OnClick"/>
+                        <MenuItem Header="Refresh"
+                                  Click="RefreshMenuItem_OnClick"/>
+                        <Separator/>
+                        <MenuItem Header="Exit"
+                                  Click="ExitMenuItem_OnClick"/>
+                    </MenuItem>
+
+                    <MenuItem Header="View">
+                        <MenuItem Header="Dashboard"
+                                  Tag="dashboard"
+                                  Click="ViewMenuItem_OnClick"/>
+                        <MenuItem Header="Resources"
+                                  Tag="resources"
+                                  Click="ViewMenuItem_OnClick"/>
+                        <MenuItem Header="Operations"
+                                  Tag="operations"
+                                  Click="ViewMenuItem_OnClick"/>
+                        <MenuItem Header="History"
+                                  Tag="history"
+                                  Click="ViewMenuItem_OnClick"/>
+                        <MenuItem Header="Reports"
+                                  Tag="reports"
+                                  Click="ViewMenuItem_OnClick"/>
+                        <MenuItem Header="Settings"
+                                  Tag="settings"
+                                  Click="ViewMenuItem_OnClick"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Discovery">
+                        <MenuItem Header="Run Discovery"
+                                  Click="DiscoverMenuItem_OnClick"/>
+                        <MenuItem Header="Refresh Current Location"
+                                  Click="RefreshMenuItem_OnClick"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Operations">
+                        <MenuItem Header="View Operations"
+                                  Tag="operations"
+                                  Click="ViewMenuItem_OnClick"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Tools">
+                        <MenuItem Header="Reports"
+                                  Tag="reports"
+                                  Click="ViewMenuItem_OnClick"/>
+                        <MenuItem Header="Settings"
+                                  Tag="settings"
+                                  Click="ViewMenuItem_OnClick"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Window">
+                        <MenuItem Header="Dashboard"
+                                  Tag="dashboard"
+                                  Click="ViewMenuItem_OnClick"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Help">
+                        <MenuItem Header="About"
+                                  Click="AboutMenuItem_OnClick"/>
+                    </MenuItem>
+                </Menu>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Background="#0B1728"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+            <Grid Margin="12"
+                  ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,225,180,42,155"
+                  ColumnSpacing="9">
+
+                <Button Grid.Column="0"
+                        Content="⌁  Connect"
+                        Padding="14,8"
+                        Click="ConnectButton_OnClick"/>
+
+                <Button Grid.Column="1"
+                        Content="↻  Refresh"
+                        Padding="14,8"
+                        Click="RefreshButton_OnClick"/>
+
+                <Button Grid.Column="2"
+                        Content="◎  Discover"
+                        Padding="14,8"
+                        Click="DiscoverButton_OnClick"/>
+
+                <Button Grid.Column="3"
+                        Content="⚙  Operate"
+                        Padding="14,8"
+                        Click="OperateButton_OnClick"/>
+
+                <TextBox Grid.Column="4"
+                         Name="GlobalSearchTextBox"
+                         Height="36"
+                         Watermark="Search resources, operations, IDs, and tags..."
+                         TextChanged="GlobalSearchTextBox_OnTextChanged"/>
+
+                <StackPanel Grid.Column="5"
+                            Orientation="Horizontal"
+                            Spacing="7"
+                            VerticalAlignment="Center">
+
+                    <Border Name="BackendIndicator"
+                            Width="8"
+                            Height="8"
+                            CornerRadius="4"
+                            Background="#FBBF24"/>
+
+                    <TextBlock Name="BackendStatusText"
+                               Text="Backend unknown"
+                               Foreground="#FDE68A"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <ComboBox Grid.Column="6"
+                          Name="ProviderAccountComboBox"
+                          Height="36"
+                          SelectionChanged="ProviderAccountComboBox_OnSelectionChanged"/>
+
+                <ComboBox Grid.Column="7"
+                          Name="LocationComboBox"
+                          Height="36"
+                          SelectionChanged="LocationComboBox_OnSelectionChanged"/>
+
+                <Button Grid.Column="8"
+                        Content="●"
+                        Width="40"/>
+
+                <Button Grid.Column="9"
+                        Name="UserButton"
+                        Content="User  ▾"
+                        Padding="12,8"
+                        Click="UserButton_OnClick">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Name="UserIdentityMenuItem"
+                                      Header="Not authenticated"
+                                      IsEnabled="False"/>
+                            <Separator/>
+                            <MenuItem Header="Profile"
+                                      Tag="profile"
+                                      Click="UserMenuItem_OnClick"/>
+                            <MenuItem Header="Change Password"
+                                      Tag="password"
+                                      Click="UserMenuItem_OnClick"/>
+                            <MenuItem Header="Settings"
+                                      Tag="settings"
+                                      Click="UserMenuItem_OnClick"/>
+                            <Separator/>
+                            <MenuItem Header="Exit"
+                                      Tag="exit"
+                                      Click="UserMenuItem_OnClick"/>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

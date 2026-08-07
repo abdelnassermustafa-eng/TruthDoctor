@@ -69,8 +69,8 @@ public partial class ValidationWindow : Window
         var natGatewayGrid = this.FindControl<DataGrid>("NatGatewayGrid");
 
         var igwGrid = this.FindControl<DataGrid>("IgwGrid");
-if (scoreText == null || passText == null ||
-            failText == null || resultsGrid == null || statusText == null)
+        if (scoreText == null || passText == null ||
+                    failText == null || resultsGrid == null || statusText == null)
             return;
 
         try
@@ -289,44 +289,44 @@ if (scoreText == null || passText == null ||
                     });
                 }
                 instanceGrid.ItemsSource = instanceRows;
-            // ==============================
-            // NAT Gateway inventory
-            // ==============================
-            if (data.TryGetProperty("natGateways", out var natData) && natGatewayGrid != null)
-            {
-                var natRows = new List<object>();
-                foreach (var n in natData.EnumerateArray())
+                // ==============================
+                // NAT Gateway inventory
+                // ==============================
+                if (data.TryGetProperty("natGateways", out var natData) && natGatewayGrid != null)
                 {
-                    natRows.Add(new
+                    var natRows = new List<object>();
+                    foreach (var n in natData.EnumerateArray())
                     {
-                        NatGatewayId = n.GetProperty("natGatewayId").GetString() ?? "",
-                        State = n.GetProperty("state").GetString() ?? "",
-                        SubnetId = n.GetProperty("subnetId").GetString() ?? "",
-                        VpcId = n.GetProperty("vpcId").GetString() ?? "",
-                        PublicIp = n.GetProperty("publicIp").GetString() ?? "",
-                        Region = n.GetProperty("region").GetString() ?? ""
-                    });
+                        natRows.Add(new
+                        {
+                            NatGatewayId = n.GetProperty("natGatewayId").GetString() ?? "",
+                            State = n.GetProperty("state").GetString() ?? "",
+                            SubnetId = n.GetProperty("subnetId").GetString() ?? "",
+                            VpcId = n.GetProperty("vpcId").GetString() ?? "",
+                            PublicIp = n.GetProperty("publicIp").GetString() ?? "",
+                            Region = n.GetProperty("region").GetString() ?? ""
+                        });
+                    }
+                    natGatewayGrid.ItemsSource = natRows;
                 }
-                natGatewayGrid.ItemsSource = natRows;
-            }
-            // ==============================
-            // Internet Gateway inventory
-            // ==============================
-            if (data.TryGetProperty("internetGateways", out var igwData) && igwGrid != null)
-            {
-                var igwRows = new List<object>();
-                foreach (var igw in igwData.EnumerateArray())
+                // ==============================
+                // Internet Gateway inventory
+                // ==============================
+                if (data.TryGetProperty("internetGateways", out var igwData) && igwGrid != null)
                 {
-                    igwRows.Add(new
+                    var igwRows = new List<object>();
+                    foreach (var igw in igwData.EnumerateArray())
                     {
-                        IgwId = igw.GetProperty("igwId").GetString() ?? "",
-                        AttachedVpcIds = igw.GetProperty("attachedVpcIds").GetString() ?? "",
-                        AttachmentState = igw.GetProperty("attachmentState").GetString() ?? "",
-                        Region = igw.GetProperty("region").GetString() ?? ""
-                    });
+                        igwRows.Add(new
+                        {
+                            IgwId = igw.GetProperty("igwId").GetString() ?? "",
+                            AttachedVpcIds = igw.GetProperty("attachedVpcIds").GetString() ?? "",
+                            AttachmentState = igw.GetProperty("attachmentState").GetString() ?? "",
+                            Region = igw.GetProperty("region").GetString() ?? ""
+                        });
+                    }
+                    igwGrid.ItemsSource = igwRows;
                 }
-                igwGrid.ItemsSource = igwRows;
-            }
 
             }
 

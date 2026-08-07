@@ -1,0 +1,1104 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="TruthDoctor.PlatformDashboardWindow"
+    Title="TruthDoctor V2"
+    Width="1600"
+    Height="960"
+    MinWidth="1280"
+    MinHeight="780"
+    Background="#07111F">
+
+    <Grid RowDefinitions="32,72,*,32">
+
+        <!-- Menu bar -->
+        <Border Grid.Row="0"
+                Background="#081321"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+            <Grid ColumnDefinitions="190,*"
+                  Margin="12,0">
+
+                <TextBlock Text="⌂  TruthDoctor V2"
+                           FontWeight="Bold"
+                           FontSize="15"
+                           Foreground="#F8FAFC"
+                           VerticalAlignment="Center"/>
+
+                <Menu Grid.Column="1"
+                      Background="Transparent"
+                      Foreground="#E2E8F0">
+
+                    <MenuItem Header="File">
+                        <MenuItem Header="Connect Provider"/>
+                        <MenuItem Header="Disconnect"/>
+                        <Separator/>
+                        <MenuItem Header="Exit"/>
+                    </MenuItem>
+
+                    <MenuItem Header="View">
+                        <MenuItem Header="Dashboard"/>
+                        <MenuItem Header="Resources"/>
+                        <MenuItem Header="Operations"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Discovery">
+                        <MenuItem Header="Run Discovery"/>
+                        <MenuItem Header="Refresh Current View"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Operations"/>
+                    <MenuItem Header="Tools"/>
+                    <MenuItem Header="Window"/>
+                    <MenuItem Header="Help"/>
+                </Menu>
+            
+<Grid
+    Grid.Row="2"
+    Margin="18,12,18,12">
+
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="320"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="360"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- LEFT -->
+
+    <Border
+        Grid.Column="0"
+        Margin="0,0,12,0"
+        Background="#111827"
+        BorderBrush="#243244"
+        BorderThickness="1"
+        CornerRadius="10">
+
+        <DockPanel>
+
+            <TextBlock
+                DockPanel.Dock="Top"
+                Margin="12"
+                FontSize="18"
+                FontWeight="Bold"
+                Text="Infrastructure"/>
+
+            <TreeView
+                Name="InfrastructureTree"
+                Margin="8"/>
+
+        </DockPanel>
+
+    </Border>
+
+    <!-- CENTER -->
+
+    <Grid Grid.Column="1">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled">
+
+            <ItemsControl
+                Name="DomainsPanel"
+                ItemsSource="{Binding Domains}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+
+                    <DataTemplate>
+
+                        <Border
+                            Width="220"
+                            Margin="6"
+                            Padding="14"
+                            Background="{Binding Background}"
+                            BorderBrush="{Binding Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+
+                            <StackPanel>
+
+                                <TextBlock
+                                    FontSize="24"
+                                    Text="{Binding Icon}"/>
+
+                                <TextBlock
+                                    Margin="0,10,0,0"
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    Text="{Binding DisplayName}"/>
+
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Text="{Binding ResourceCount}"/>
+
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontSize="11"
+                                    TextWrapping="Wrap"
+                                    Text="{Binding ResourceTypes}"/>
+
+                            </StackPanel>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+
+        </ScrollViewer>
+
+        <DataGrid
+            Grid.Row="1"
+            Name="ResourcesGrid"
+            Margin="0,16,0,0"
+            AutoGenerateColumns="False"
+            ItemsSource="{Binding Resources}">
+
+            <DataGrid.Columns>
+
+                <DataGridTextColumn
+                    Header="Resource"
+                    Binding="{Binding DisplayName}"/>
+
+                <DataGridTextColumn
+                    Header="Type"
+                    Binding="{Binding ResourceType}"/>
+
+                <DataGridTextColumn
+                    Header="State"
+                    Binding="{Binding State}"/>
+
+                <DataGridTextColumn
+                    Header="Region"
+                    Binding="{Binding Location}"/>
+
+            </DataGrid.Columns>
+
+        </DataGrid>
+
+    </Grid>
+
+    <!-- RIGHT -->
+
+    <Border
+        Grid.Column="2"
+        Margin="12,0,0,0"
+        Background="#111827"
+        BorderBrush="#243244"
+        BorderThickness="1"
+        CornerRadius="10">
+
+        <DockPanel>
+
+            <TextBlock
+                DockPanel.Dock="Top"
+                Margin="12"
+                FontSize="18"
+                FontWeight="Bold"
+                Text="Details"/>
+
+            <ScrollViewer>
+
+                <StackPanel
+                    Name="DetailsPanel"
+                    Margin="12">
+
+                    <TextBlock
+                        FontWeight="Bold"
+                        Text="{Binding ProviderName}"/>
+
+                    <TextBlock
+                        Text="{Binding AccountName}"/>
+
+                    <TextBlock
+                        Text="{Binding AccountId}"/>
+
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        Text="{Binding IdentityArn}"
+                        TextWrapping="Wrap"/>
+
+                    <Separator Margin="0,12"/>
+
+                    <TextBlock
+                        Text="Resource details will appear here."/>
+
+                </StackPanel>
+
+            </ScrollViewer>
+
+        </DockPanel>
+
+    </Border>
+
+</Grid>
+
+</Grid>
+        </Border>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="1"
+                Background="#0B1728"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,320,*,140,230,190,44,150"
+                  Margin="12"
+                  ColumnSpacing="8">
+
+                <Button Grid.Column="0"
+                        Content="⌁  Connect"
+                        Padding="14,8"/>
+
+                <Button Grid.Column="1"
+                        Content="↻  Refresh"
+                        Padding="14,8"/>
+
+                <Button Grid.Column="2"
+                        Content="◎  Discover"
+                        Padding="14,8"/>
+
+                <Button Grid.Column="3"
+                        Content="⚙  Operate"
+                        Padding="14,8"/>
+
+                <TextBox Grid.Column="4"
+                         Watermark="Search resources, operations, IDs, tags..."
+                         Height="36"/>
+
+                <StackPanel Grid.Column="6"
+                            Orientation="Horizontal"
+                            Spacing="7"
+                            VerticalAlignment="Center">
+
+                    <Border Width="8"
+                            Height="8"
+                            CornerRadius="4"
+                            Background="#22C55E"/>
+
+                    <TextBlock Text="Connected"
+                               Foreground="#86EFAC"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="7"
+                            Spacing="3">
+
+                    <TextBlock Text="Account / Project"
+                               FontSize="9"
+                               Foreground="#64748B"/>
+
+                    <ComboBox SelectedIndex="0"
+                              Height="36">
+                        <ComboBoxItem Content="MasterLab (123456789012)"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="8"
+                            Spacing="3">
+
+                    <TextBlock Text="Location"
+                               FontSize="9"
+                               Foreground="#64748B"/>
+
+                    <ComboBox SelectedIndex="0"
+                              Height="36">
+                        <ComboBoxItem Content="us-east-1 (N. Virginia)"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <Button Grid.Column="9"
+                        Content="🔔"
+                        Width="40"/>
+
+                <Button Grid.Column="10"
+                        Content="NA  Nasser  ▾"
+                        Padding="12,8"/>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="205,*,390">
+
+            <!-- Navigation -->
+            <Border Grid.Column="0"
+                    Background="#091526"
+                    BorderBrush="#223149"
+                    BorderThickness="0,0,1,0">
+
+                <Grid RowDefinitions="*,Auto">
+
+                    <ScrollViewer>
+                        <StackPanel Margin="12"
+                                    Spacing="5">
+
+                            <TextBlock Text="PLATFORM"
+                                       Margin="7,5,0,8"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="#64748B"/>
+
+                            <Button Content="▦   Dashboard"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,10"
+                                    Background="#155EEF"
+                                    Foreground="White"/>
+
+                            <Expander Header="◉   Discovery"
+                                      IsExpanded="True">
+
+                                <StackPanel Margin="18,5,0,6"
+                                            Spacing="2">
+
+                                    <Button Content="✧   Identity"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="⌘   Networking"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="▣   Compute"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="▤   Storage"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="◉   Databases"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="⬡   Containers"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="⌘   Load Balancing"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="◈   Observability"
+                                            HorizontalContentAlignment="Left"/>
+
+                                    <Button Content="⋯   Others"
+                                            HorizontalContentAlignment="Left"/>
+                                </StackPanel>
+                            </Expander>
+
+                            <Separator Margin="0,5"/>
+
+                            <Button Content="◇   Resources"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,10"/>
+
+                            <Button Content="⇄   Operations"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,10"/>
+
+                            <Button Content="◷   History"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,10"/>
+
+                            <Button Content="▤   Reports"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,10"/>
+
+                            <Button Content="⚙   Settings"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="12,10"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="1"
+                                Margin="12"
+                                Spacing="8">
+
+                        <Border Padding="12"
+                                CornerRadius="10"
+                                Background="#10223A"
+                                BorderBrush="#1E4168"
+                                BorderThickness="1">
+
+                            <StackPanel Spacing="5">
+
+                                <TextBlock Text="Discovery Status"
+                                           FontSize="10"
+                                           Foreground="#94A3B8"/>
+
+                                <TextBlock Text="● Operational"
+                                           FontWeight="SemiBold"
+                                           Foreground="#4ADE80"/>
+
+                                <TextBlock Text="AWS · us-east-1"
+                                           Foreground="#E2E8F0"/>
+
+                                <TextBlock Text="Last refresh: 2 minutes ago"
+                                           FontSize="10"
+                                           Foreground="#64748B"/>
+
+                                <Button Content="Refresh Now"
+                                        Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Button Content="←  Collapse"
+                                HorizontalContentAlignment="Left"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main workspace -->
+            <ScrollViewer Grid.Column="1">
+
+                <StackPanel Margin="20"
+                            Spacing="14">
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <StackPanel>
+                            <TextBlock Text="Infrastructure Overview"
+                                       FontSize="25"
+                                       FontWeight="Bold"
+                                       Foreground="#F8FAFC"/>
+
+                            <TextBlock Text="Real-time view of your cloud infrastructure"
+                                       Foreground="#94A3B8"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="7"
+                                    VerticalAlignment="Center">
+
+                            <TextBlock Text="Last Discovery: 2 minutes ago"
+                                       Foreground="#94A3B8"/>
+
+                            <TextBlock Text="●"
+                                       Foreground="#22C55E"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Summary cards -->
+                    <Grid ColumnDefinitions="*,*,*,*,*"
+                          ColumnSpacing="10">
+
+                        <Border Grid.Column="0"
+                                Padding="16"
+                                CornerRadius="10"
+                                Background="#382D72"
+                                BorderBrush="#725FD1"
+                                BorderThickness="1">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="VPCs"
+                                               Foreground="#D8B4FE"/>
+                                    <TextBlock Text="3"
+                                               FontSize="29"
+                                               FontWeight="Bold"
+                                               Foreground="White"/>
+                                    <TextBlock Text="+0 since last discovery"
+                                               FontSize="9"
+                                               Foreground="#C4B5FD"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="☁"
+                                           FontSize="31"
+                                           Foreground="#A78BFA"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="1"
+                                Padding="16"
+                                CornerRadius="10"
+                                Background="#164778"
+                                BorderBrush="#2D72B6"
+                                BorderThickness="1">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="EC2 Instances"
+                                               Foreground="#BFDBFE"/>
+                                    <TextBlock Text="8"
+                                               FontSize="29"
+                                               FontWeight="Bold"
+                                               Foreground="White"/>
+                                    <TextBlock Text="+2 since last discovery"
+                                               FontSize="9"
+                                               Foreground="#BFDBFE"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="▣"
+                                           FontSize="31"
+                                           Foreground="#93C5FD"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="2"
+                                Padding="16"
+                                CornerRadius="10"
+                                Background="#19583F"
+                                BorderBrush="#27835B"
+                                BorderThickness="1">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Auto Scaling Groups"
+                                               Foreground="#BBF7D0"/>
+                                    <TextBlock Text="2"
+                                               FontSize="29"
+                                               FontWeight="Bold"
+                                               Foreground="White"/>
+                                    <TextBlock Text="+0 since last discovery"
+                                               FontSize="9"
+                                               Foreground="#BBF7D0"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="↗"
+                                           FontSize="31"
+                                           Foreground="#4ADE80"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="3"
+                                Padding="16"
+                                CornerRadius="10"
+                                Background="#754A16"
+                                BorderBrush="#B57825"
+                                BorderThickness="1">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Load Balancers"
+                                               Foreground="#FDE68A"/>
+                                    <TextBlock Text="2"
+                                               FontSize="29"
+                                               FontWeight="Bold"
+                                               Foreground="White"/>
+                                    <TextBlock Text="+0 since last discovery"
+                                               FontSize="9"
+                                               Foreground="#FDE68A"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="⌘"
+                                           FontSize="31"
+                                           Foreground="#FBBF24"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="4"
+                                Padding="16"
+                                CornerRadius="10"
+                                Background="#0D5667"
+                                BorderBrush="#16899E"
+                                BorderThickness="1">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Total Resources"
+                                               Foreground="#A5F3FC"/>
+                                    <TextBlock Text="158"
+                                               FontSize="29"
+                                               FontWeight="Bold"
+                                               Foreground="White"/>
+                                    <TextBlock Text="+15 since last discovery"
+                                               FontSize="9"
+                                               Foreground="#A5F3FC"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="◇"
+                                           FontSize="31"
+                                           Foreground="#67E8F9"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- Discovery -->
+                    <Border Padding="15"
+                            CornerRadius="10"
+                            Background="#0D1B30"
+                            BorderBrush="#263A56"
+                            BorderThickness="1">
+
+                        <StackPanel Spacing="11">
+
+                            <TextBlock Text="Infrastructure Discovery"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F8FAFC"/>
+
+                            <Grid ColumnDefinitions="1.1*,1.4*,1.3*,Auto"
+                                  ColumnSpacing="12">
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Provider"
+                                               FontSize="10"
+                                               Foreground="#94A3B8"/>
+                                    <ComboBox SelectedIndex="0">
+                                        <ComboBoxItem Content="AWS"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1"
+                                            Spacing="4">
+                                    <TextBlock Text="Account / Project"
+                                               FontSize="10"
+                                               Foreground="#94A3B8"/>
+                                    <ComboBox SelectedIndex="0">
+                                        <ComboBoxItem Content="MasterLab (123456789012)"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2"
+                                            Spacing="4">
+                                    <TextBlock Text="Location"
+                                               FontSize="10"
+                                               Foreground="#94A3B8"/>
+                                    <ComboBox SelectedIndex="0">
+                                        <ComboBoxItem Content="us-east-1 (N. Virginia)"/>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <Button Grid.Column="3"
+                                        Content="▶  Run Discovery"
+                                        Padding="20,9"
+                                        Background="#2563EB"
+                                        Foreground="White"
+                                        VerticalAlignment="Bottom"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Resources -->
+                    <Border CornerRadius="10"
+                            Background="#0D1B30"
+                            BorderBrush="#263A56"
+                            BorderThickness="1">
+
+                        <StackPanel>
+
+                            <Grid ColumnDefinitions="*,215,105,105,40"
+                                  Margin="15,12"
+                                  ColumnSpacing="8">
+
+                                <TextBlock Text="Discovered Resources (158)"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="#F8FAFC"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBox Grid.Column="1"
+                                         Watermark="Search resources..."/>
+
+                                <ComboBox Grid.Column="2"
+                                          SelectedIndex="0">
+                                    <ComboBoxItem Content="All Types"/>
+                                </ComboBox>
+
+                                <ComboBox Grid.Column="3"
+                                          SelectedIndex="0">
+                                    <ComboBoxItem Content="All Status"/>
+                                </ComboBox>
+
+                                <Button Grid.Column="4"
+                                        Content="↻"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="135,2*,130,120,150,120,35"
+                                  Background="#19283E">
+
+                                <TextBlock Text="TYPE" Margin="14,9" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="1" Text="NAME / ID" Margin="14,9" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="2" Text="STATUS" Margin="14,9" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="3" Text="LOCATION" Margin="14,9" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="4" Text="ACCOUNT / PROJECT" Margin="14,9" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="5" Text="LAST DISCOVERED" Margin="14,9" Foreground="#94A3B8"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="135,2*,130,120,150,120,35">
+                                <TextBlock Text="☁  VPC" Margin="14,10" Foreground="#C4B5FD"/>
+                                <TextBlock Grid.Column="1" Text="Production VPC · vpc-0a1b2c3d4e5f" Margin="14,10" Foreground="#E2E8F0"/>
+                                <TextBlock Grid.Column="2" Text="● Found" Margin="14,10" Foreground="#4ADE80"/>
+                                <TextBlock Grid.Column="3" Text="us-east-1" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="4" Text="MasterLab" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="5" Text="2m ago" Margin="14,10" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="6" Text="⋮" Margin="10" Foreground="#94A3B8"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="135,2*,130,120,150,120,35">
+                                <TextBlock Text="▣  Subnet" Margin="14,10" Foreground="#4ADE80"/>
+                                <TextBlock Grid.Column="1" Text="Public Subnet 1A · subnet-01abc" Margin="14,10" Foreground="#E2E8F0"/>
+                                <TextBlock Grid.Column="2" Text="● Found" Margin="14,10" Foreground="#4ADE80"/>
+                                <TextBlock Grid.Column="3" Text="us-east-1a" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="4" Text="MasterLab" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="5" Text="2m ago" Margin="14,10" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="6" Text="⋮" Margin="10" Foreground="#94A3B8"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="135,2*,130,120,150,120,35">
+                                <TextBlock Text="▣  EC2 Instance" Margin="14,10" Foreground="#FBBF24"/>
+                                <TextBlock Grid.Column="1" Text="Web Server 1 · i-0a1b2c3d" Margin="14,10" Foreground="#E2E8F0"/>
+                                <TextBlock Grid.Column="2" Text="● Running" Margin="14,10" Foreground="#4ADE80"/>
+                                <TextBlock Grid.Column="3" Text="us-east-1a" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="4" Text="MasterLab" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="5" Text="2m ago" Margin="14,10" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="6" Text="⋮" Margin="10" Foreground="#94A3B8"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="135,2*,130,120,150,120,35">
+                                <TextBlock Text="⌘  Load Balancer" Margin="14,10" Foreground="#C084FC"/>
+                                <TextBlock Grid.Column="1" Text="app/my-alb/50dc6c495c0c" Margin="14,10" Foreground="#E2E8F0"/>
+                                <TextBlock Grid.Column="2" Text="● Active" Margin="14,10" Foreground="#4ADE80"/>
+                                <TextBlock Grid.Column="3" Text="us-east-1" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="4" Text="MasterLab" Margin="14,10" Foreground="#CBD5E1"/>
+                                <TextBlock Grid.Column="5" Text="2m ago" Margin="14,10" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="6" Text="⋮" Margin="10" Foreground="#94A3B8"/>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,Auto"
+                                  Margin="15,10">
+
+                                <TextBlock Text="Showing 1 to 4 of 158 resources"
+                                           Foreground="#94A3B8"/>
+
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            Spacing="5">
+                                    <Button Content="‹"/>
+                                    <Button Content="1" Background="#2563EB"/>
+                                    <Button Content="2"/>
+                                    <Button Content="3"/>
+                                    <Button Content="…"/>
+                                    <Button Content="40"/>
+                                    <Button Content="›"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Bottom panels -->
+                    <Grid ColumnDefinitions="0.9*,1.1*"
+                          ColumnSpacing="10">
+
+                        <Border Padding="14"
+                                CornerRadius="10"
+                                Background="#0D1B30"
+                                BorderBrush="#263A56"
+                                BorderThickness="1">
+
+                            <StackPanel Spacing="10">
+
+                                <TextBlock Text="Quick Actions"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="#F8FAFC"/>
+
+                                <Grid ColumnDefinitions="*,*"
+                                      RowDefinitions="Auto,Auto"
+                                      ColumnSpacing="8"
+                                      RowSpacing="8">
+
+                                    <Button Content="◎  Run Discovery&#10;    Discover infrastructure"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="12"/>
+
+                                    <Button Grid.Column="1"
+                                            Content="▦  Browse Resources&#10;    View all resources"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="12"/>
+
+                                    <Button Grid.Row="1"
+                                            Content="⊕  Create Operation&#10;    Start a new operation"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="12"/>
+
+                                    <Button Grid.Row="1"
+                                            Grid.Column="1"
+                                            Content="◷  View History&#10;    View operation history"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="12"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1"
+                                Padding="14"
+                                CornerRadius="10"
+                                Background="#0D1B30"
+                                BorderBrush="#263A56"
+                                BorderThickness="1">
+
+                            <StackPanel Spacing="8">
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="Recent Operations"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="#F8FAFC"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="View All"
+                                               Foreground="#60A5FA"/>
+                                </Grid>
+
+                                <TextBlock Text="▣  Discovery · AWS us-east-1               ✓ Completed     2m ago"
+                                           Foreground="#CBD5E1"/>
+
+                                <TextBlock Text="▣  Start EC2 Instance                       ✓ Completed     15m ago"
+                                           Foreground="#CBD5E1"/>
+
+                                <TextBlock Text="▣  Create EBS Volume                        ✓ Completed     1h ago"
+                                           Foreground="#CBD5E1"/>
+
+                                <TextBlock Text="▣  Update Security Group                    ✕ Failed        2h ago"
+                                           Foreground="#CBD5E1"/>
+
+                                <TextBlock Text="▣  Attach Volume                            ✓ Completed     3h ago"
+                                           Foreground="#CBD5E1"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right panel -->
+            <Border Grid.Column="2"
+                    Background="#0A1627"
+                    BorderBrush="#223149"
+                    BorderThickness="1,0,0,0">
+
+                <Grid RowDefinitions="*,Auto">
+
+                    <ScrollViewer>
+                        <StackPanel Margin="14"
+                                    Spacing="12">
+
+                            <TextBlock Text="Resource Details"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F8FAFC"/>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="10">
+
+                                <Border Width="42"
+                                        Height="42"
+                                        CornerRadius="8"
+                                        Background="#704711">
+
+                                    <TextBlock Text="▣"
+                                               FontSize="23"
+                                               Foreground="#F59E0B"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Web Server 1"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="#F8FAFC"/>
+
+                                    <TextBlock Text="EC2 Instance · i-0a1b2c3d"
+                                               Foreground="#94A3B8"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="2"
+                                           Text="● Running"
+                                           Foreground="#4ADE80"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="19">
+                                <TextBlock Text="Summary" Foreground="#60A5FA"/>
+                                <TextBlock Text="Tags" Foreground="#94A3B8"/>
+                                <TextBlock Text="Topology" Foreground="#94A3B8"/>
+                                <TextBlock Text="Timeline" Foreground="#94A3B8"/>
+                                <TextBlock Text="Events" Foreground="#94A3B8"/>
+                            </StackPanel>
+
+                            <Separator/>
+
+                            <Grid ColumnDefinitions="125,*"
+                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                  RowSpacing="7">
+
+                                <TextBlock Text="Instance Type" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Column="1" Text="t3.micro" Foreground="#E2E8F0"/>
+
+                                <TextBlock Grid.Row="1" Text="Private IP" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="10.0.1.25" Foreground="#E2E8F0"/>
+
+                                <TextBlock Grid.Row="2" Text="Public IP" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="54.12.34.56" Foreground="#E2E8F0"/>
+
+                                <TextBlock Grid.Row="3" Text="VPC" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="vpc-0a1b2c3d" Foreground="#E2E8F0"/>
+
+                                <TextBlock Grid.Row="4" Text="Subnet" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="subnet-0a1b2c3d" Foreground="#E2E8F0"/>
+
+                                <TextBlock Grid.Row="5" Text="Launch Time" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Text="2024-06-10 10:15 UTC" Foreground="#E2E8F0"/>
+
+                                <TextBlock Grid.Row="6" Text="Status" Foreground="#94A3B8"/>
+                                <TextBlock Grid.Row="6" Grid.Column="1" Text="● Running" Foreground="#4ADE80"/>
+                            </Grid>
+
+                            <TextBlock Text="View All Details →"
+                                       Foreground="#60A5FA"/>
+
+                            <Separator/>
+
+                            <TextBlock Text="Available Operations"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F8FAFC"/>
+
+                            <Button Content="▷  Start Instance"
+                                    HorizontalContentAlignment="Left"/>
+
+                            <Button Content="●  Stop Instance"
+                                    HorizontalContentAlignment="Left"/>
+
+                            <Button Content="↻  Reboot Instance"
+                                    HorizontalContentAlignment="Left"/>
+
+                            <Button Content="⊠  Terminate Instance"
+                                    HorizontalContentAlignment="Left"/>
+
+                            <Button Content="▣  Create Snapshot"
+                                    HorizontalContentAlignment="Left"/>
+
+                            <Button Content="⋯  More Operations..."
+                                    HorizontalContentAlignment="Left"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="1"
+                            Margin="12"
+                            Padding="14"
+                            CornerRadius="12"
+                            Background="#152B51"
+                            BorderBrush="#2563EB"
+                            BorderThickness="1">
+
+                        <StackPanel Spacing="10">
+
+                            <Grid ColumnDefinitions="Auto,*">
+
+                                <Border Width="36"
+                                        Height="36"
+                                        CornerRadius="18"
+                                        Background="#2563EB">
+
+                                    <TextBlock Text="AI"
+                                               FontWeight="Bold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1"
+                                            Margin="9,0,0,0">
+
+                                    <TextBlock Text="Cloud Operations Assistant"
+                                               FontWeight="SemiBold"
+                                               Foreground="#F8FAFC"/>
+
+                                    <TextBlock Text="Online"
+                                               FontSize="10"
+                                               Foreground="#4ADE80"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Padding="10"
+                                    CornerRadius="8"
+                                    Background="#203A63">
+
+                                <TextBlock Text="I can help you discover, analyze, and operate your infrastructure safely."
+                                           TextWrapping="Wrap"
+                                           Foreground="#DBEAFE"/>
+                            </Border>
+
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="7">
+
+                                <TextBox Watermark="Type your question..."/>
+
+                                <Button Grid.Column="1"
+                                        Content="➤"
+                                        Width="40"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="3"
+                Background="#F8FAFC"
+                BorderBrush="#2563EB"
+                BorderThickness="1,1,1,0">
+
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"
+                  Margin="15,0"
+                  ColumnSpacing="23">
+
+                <TextBlock Text="AWS  |  Provider: AWS"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="1"
+                           Text="♙  Account: MasterLab (123456789012)"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="2"
+                           Text="●  Region: us-east-1"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="3"
+                           Text="♙  User: Nasser (Admin)"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="4"
+                           Text="✓  Discovery: Completed"
+                           Foreground="#15803D"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="5"
+                           Text="◉  Operations: 0 Running"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="6"
+                           Text="●  API: Online"
+                           Foreground="#15803D"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="8"
+                           Name="CurrentTimeText"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="9"
+                           Text="v2.0.0"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

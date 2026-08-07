@@ -1,0 +1,379 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:TruthDoctor.Controls.Workbench"
+    x:Class="TruthDoctor.Views.UniversalWorkbench.UniversalWorkbenchWindow"
+    Title="TruthDoctor Universal Infrastructure Workbench"
+    Width="1600"
+    Height="960"
+    MinWidth="1280"
+    MinHeight="760"
+    Background="#07111F">
+
+    <Grid RowDefinitions="96,*,30">
+
+        <controls:WorkbenchTopBar Grid.Row="0" Name="TopBar"/>
+
+        <Grid Grid.Row="1"
+              ColumnDefinitions="210,*,370">
+
+            <Border Grid.Column="0"
+                    Background="#091526"
+                    BorderBrush="#223149"
+                    BorderThickness="0,0,1,0">
+
+                <Grid RowDefinitions="*,Auto">
+
+                    <StackPanel Margin="12"
+                                Spacing="6">
+
+                        <TextBlock Text="PLATFORM"
+                                   Margin="7,6,0,8"
+                                   FontSize="10"
+                                   FontWeight="Bold"
+                                   Foreground="#64748B"/>
+
+                        <Button Name="DashboardNavButton" Content="▦   Dashboard" Click="NavigationButton_OnClick" Tag="dashboard"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"
+                                Background="#155EEF"
+                                Foreground="White"/>
+
+                        <Expander Header="◉   Infrastructure"
+                                  IsExpanded="True">
+
+                            <StackPanel Name="DomainNavigationPanel"
+                                        Margin="18,6,0,4"
+                                        Spacing="3">
+
+                                <TextBlock Name="EmptyDomainsText"
+                                           Margin="10,7"
+                                           Foreground="#64748B"
+                                           Text="Domains appear after discovery"/>
+                            </StackPanel>
+                        </Expander>
+
+                        <Button Name="ResourcesNavButton" Content="◇   Resources" Click="NavigationButton_OnClick" Tag="resources"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"/>
+
+                        <Button Name="OperationsNavButton" Content="⇄   Operations" Click="NavigationButton_OnClick" Tag="operations"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"/>
+
+                        <Button Name="HistoryNavButton" Content="◷   History" Click="NavigationButton_OnClick" Tag="history"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"/>
+
+                        <Button Name="ReportsNavButton" Content="▤   Reports" Click="NavigationButton_OnClick" Tag="reports"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"/>
+
+                        <Button Name="SettingsNavButton" Content="⚙   Settings" Click="NavigationButton_OnClick" Tag="settings"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="1"
+                            Margin="12"
+                            Padding="12"
+                            CornerRadius="10"
+                            Background="#10223A"
+                            BorderBrush="#1E4168"
+                            BorderThickness="1">
+
+                        <StackPanel Spacing="5">
+
+                            <TextBlock Text="Discovery status"
+                                       FontSize="10"
+                                       Foreground="#94A3B8"/>
+
+                            <TextBlock Name="DiscoveryStatusText"
+                                       Text="● Not connected"
+                                       Foreground="#FBBF24"/>
+
+                            <TextBlock Name="SidebarProviderText"
+                                       Text="Provider: Unknown"
+                                       Foreground="#E2E8F0"/>
+
+                            <TextBlock Name="SidebarRefreshText"
+                                       Text="Last refresh: not yet"
+                                       FontSize="10"
+                                       Foreground="#64748B"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Column="1" Name="DashboardWorkspace">
+
+                <StackPanel Margin="20"
+                            Spacing="14">
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <StackPanel>
+                            <TextBlock Text="Infrastructure Overview"
+                                       FontSize="26"
+                                       FontWeight="Bold"
+                                       Foreground="#F8FAFC"/>
+
+                            <TextBlock Text="Universal infrastructure state"
+                                       Foreground="#94A3B8"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Column="1"
+                                   Name="LastDiscoveryText"
+                                   Text="Awaiting discovery"
+                                   Foreground="#94A3B8"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <ItemsControl Name="DomainCardsControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <Border Padding="15"
+                            CornerRadius="10"
+                            Background="#0D1B30"
+                            BorderBrush="#263A56"
+                            BorderThickness="1">
+
+                        <Grid ColumnDefinitions="1.1*,1.4*,1.3*,Auto"
+                              ColumnSpacing="12">
+
+                            <StackPanel>
+                                <TextBlock Text="Provider"
+                                           FontSize="10"
+                                           Foreground="#94A3B8"/>
+
+                                <ComboBox Name="ProviderComboBox"
+                                          Margin="0,5,0,0"
+                                          SelectedIndex="0">
+                                    <ComboBoxItem Content="Not connected"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Account / Project"
+                                           FontSize="10"
+                                           Foreground="#94A3B8"/>
+
+                                <ComboBox Name="AccountComboBox"
+                                          Margin="0,5,0,0"
+                                          SelectedIndex="0">
+                                    <ComboBoxItem Content="No account"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Location"
+                                           FontSize="10"
+                                           Foreground="#94A3B8"/>
+
+                                <ComboBox Name="LocationComboBox"
+                                          Margin="0,5,0,0"
+                                          SelectionChanged="LocationComboBox_OnSelectionChanged">
+                                    <ComboBoxItem Content="No location"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <Button Grid.Column="3"
+                                    Name="RunDiscoveryButton"
+                                    Content="▶  Run Discovery"
+                                    Padding="20,9"
+                                    Background="#2563EB"
+                                    Foreground="White"
+                                    VerticalAlignment="Bottom"
+                                    Click="RunDiscoveryButton_OnClick"/>
+                        </Grid>
+                    </Border>
+
+                    <Border CornerRadius="10"
+                            Background="#0D1B30"
+                            BorderBrush="#263A56"
+                            BorderThickness="1">
+
+                        <Grid RowDefinitions="Auto,*">
+
+                            <Grid Margin="15,12"
+                                  ColumnDefinitions="*,220,130,120,40"
+                                  ColumnSpacing="8">
+
+                                <TextBlock Name="ResourceTitleText"
+                                           Text="Discovered Resources"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="#F8FAFC"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBox Grid.Column="1"
+                                         Name="ResourceSearchTextBox"
+                                         Watermark="Search resources..."
+                                         TextChanged="ResourceSearchTextBox_OnTextChanged"/>
+
+                                <ComboBox Grid.Column="2"
+                                          Name="DomainFilterComboBox"
+                                          SelectionChanged="FilterComboBox_OnSelectionChanged">
+                                    <ComboBoxItem Content="All domains"/>
+                                </ComboBox>
+
+                                <ComboBox Grid.Column="3"
+                                          Name="StateFilterComboBox"
+                                          SelectionChanged="FilterComboBox_OnSelectionChanged">
+                                    <ComboBoxItem Content="All states"/>
+                                </ComboBox>
+
+                                <Button Grid.Column="4"
+                                        Content="↻"
+                                        Click="RunDiscoveryButton_OnClick"/>
+                            </Grid>
+
+                            <ListBox Grid.Row="1"
+                                     Name="ResourceListBox"
+                                     Margin="12"
+                                     MinHeight="400"
+                                     Background="#101B2C"
+                                     SelectionChanged="ResourceListBox_OnSelectionChanged"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Column="1"
+                    Name="SecondaryWorkspace"
+                    Margin="18"
+                    IsVisible="False"
+                    CornerRadius="10"
+                    Background="#0D1B30"
+                    BorderBrush="#263A56"
+                    BorderThickness="1">
+
+                <StackPanel Margin="24"
+                            Spacing="12">
+
+                    <TextBlock Name="SecondaryWorkspaceTitle"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Foreground="#F8FAFC"/>
+
+                    <TextBlock Name="SecondaryWorkspaceDescription"
+                               Foreground="#94A3B8"
+                               TextWrapping="Wrap"/>
+
+                    <ListBox Name="SecondaryWorkspaceList"
+                             Margin="0,14,0,0"
+                             MinHeight="500"
+                             Background="#101B2C"/>
+                </StackPanel>
+            </Border>
+
+
+            <Border Grid.Column="2"
+                    Background="#0A1627"
+                    BorderBrush="#223149"
+                    BorderThickness="1,0,0,0">
+
+                <Grid RowDefinitions="*,Auto">
+
+                    <ScrollViewer>
+                        <StackPanel Margin="14"
+                                    Spacing="12">
+
+                            <TextBlock Text="Resource Details"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F8FAFC"/>
+
+                            <Border Padding="18"
+                                    CornerRadius="10"
+                                    Background="#0D1B30"
+                                    BorderBrush="#263A56"
+                                    BorderThickness="1">
+
+                                <StackPanel Name="ResourceDetailsPanel"
+                                            Spacing="8">
+
+                                    <TextBlock Text="Select a resource to inspect its state, properties, relationships, and available operations."
+                                               TextWrapping="Wrap"
+                                               Foreground="#94A3B8"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="1"
+                            Margin="12"
+                            Padding="14"
+                            CornerRadius="12"
+                            Background="#152B51"
+                            BorderBrush="#2563EB"
+                            BorderThickness="1">
+
+                        <StackPanel Spacing="9">
+
+                            <TextBlock Text="Cloud Operations Assistant"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F8FAFC"/>
+
+                            <TextBlock Name="AssistantStatusText"
+                                       Text="Waiting for infrastructure state."
+                                       Foreground="#BFDBFE"/>
+
+                            <TextBox Watermark="Ask about your infrastructure..."/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="#F8FAFC"
+                BorderBrush="#2563EB"
+                BorderThickness="1,1,1,0">
+
+            <Grid Margin="14,0"
+                  ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+                  ColumnSpacing="22">
+
+                <TextBlock Name="StatusProviderText"
+                           Text="Provider: Not connected"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="1"
+                           Name="StatusAccountText"
+                           Text="Account: Unknown"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="2"
+                           Name="StatusLocationText"
+                           Text="Location: Unknown"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="3"
+                           Name="StatusDiscoveryText"
+                           Text="Discovery: Not started"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="4"
+                           Name="StatusApiText"
+                           Text="API: Unknown"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="6"
+                           Name="CurrentTimeText"
+                           Foreground="#0F172A"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

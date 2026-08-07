@@ -30,4 +30,12 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Remove="Archive/**" />
+    <Compile Remove="Archive/**" />
+    <EmbeddedResource Remove="Archive/**" />
+    <None Include="Archive/**" />
+  </ItemGroup>
+
 </Project>
