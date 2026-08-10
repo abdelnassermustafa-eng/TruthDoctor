@@ -123,48 +123,318 @@ public partial class TopologyCanvas : UserControl
                 continue;
             }
 
+            var sourceCenter =
+                new Point(
+                    source.X + 80,
+                    source.Y + 35);
+
+            var targetCenter =
+                new Point(
+                    target.X + 80,
+                    target.Y + 35);
+
+            var startPoint =
+                FindNodeBoundaryPoint(
+                    sourceCenter,
+                    targetCenter);
+
+            var endPoint =
+                FindNodeBoundaryPoint(
+                    targetCenter,
+                    sourceCenter);
+
+            var edgeColor =
+                GetRelationshipColor(
+                    edge.Kind);
+
+            var edgeBrush =
+                new SolidColorBrush(
+                    edgeColor);
+
             var line =
                 new Line
                 {
-                    StartPoint =
-                        new Point(
-                            source.X + 80,
-                            source.Y + 35),
-
-                    EndPoint =
-                        new Point(
-                            target.X + 80,
-                            target.Y + 35),
-
-                    Stroke =
-                        new SolidColorBrush(
-                            Color.Parse("#475569")),
-
+                    StartPoint = startPoint,
+                    EndPoint = endPoint,
+                    Stroke = edgeBrush,
                     StrokeThickness = 2
                 };
 
             RootCanvas.Children.Add(line);
 
-            var label =
-                new TextBlock
-                {
-                    Text = edge.Relationship,
-                    FontSize = 11,
-                    Foreground =
-                        new SolidColorBrush(
-                            Color.Parse("#94A3B8"))
-                };
+            RenderArrowHead(
+                startPoint,
+                endPoint,
+                edgeBrush);
 
-            Canvas.SetLeft(
-                label,
-                (source.X + target.X) / 2);
-
-            Canvas.SetTop(
-                label,
-                (source.Y + target.Y) / 2);
-
-            RootCanvas.Children.Add(label);
+            RenderRelationshipLabel(
+                edge,
+                startPoint,
+                endPoint,
+                edgeBrush);
         }
+    }
+
+    private void RenderArrowHead(
+        Point startPoint,
+        Point endPoint,
+        IBrush edgeBrush)
+    {
+        var deltaX =
+            endPoint.X -
+            startPoint.X;
+
+        var deltaY =
+            endPoint.Y -
+            startPoint.Y;
+
+        var length =
+            Math.Sqrt(
+                (deltaX * deltaX) +
+                (deltaY * deltaY));
+
+        if (length < 1)
+        {
+            return;
+        }
+
+        var directionX =
+            deltaX / length;
+
+        var directionY =
+            deltaY / length;
+
+        const double arrowLength = 12;
+        const double arrowWidth = 6;
+
+        var arrowBase =
+            new Point(
+                endPoint.X -
+                (directionX * arrowLength),
+                endPoint.Y -
+                (directionY * arrowLength));
+
+        var perpendicularX =
+            -directionY;
+
+        var perpendicularY =
+            directionX;
+
+        var leftPoint =
+            new Point(
+                arrowBase.X +
+                (perpendicularX * arrowWidth),
+                arrowBase.Y +
+                (perpendicularY * arrowWidth));
+
+        var rightPoint =
+            new Point(
+                arrowBase.X -
+                (perpendicularX * arrowWidth),
+                arrowBase.Y -
+                (perpendicularY * arrowWidth));
+
+        RootCanvas.Children.Add(
+            new Line
+            {
+                StartPoint = leftPoint,
+                EndPoint = endPoint,
+                Stroke = edgeBrush,
+                StrokeThickness = 2
+            });
+
+        RootCanvas.Children.Add(
+            new Line
+            {
+                StartPoint = rightPoint,
+                EndPoint = endPoint,
+                Stroke = edgeBrush,
+                StrokeThickness = 2
+            });
+    }
+
+    private void RenderRelationshipLabel(
+        TopologyEdge edge,
+        Point startPoint,
+        Point endPoint,
+        IBrush edgeBrush)
+    {
+        var midpointX =
+            (startPoint.X + endPoint.X) / 2;
+
+        var midpointY =
+            (startPoint.Y + endPoint.Y) / 2;
+
+        var deltaX =
+            endPoint.X -
+            startPoint.X;
+
+        var deltaY =
+            endPoint.Y -
+            startPoint.Y;
+
+        var length =
+            Math.Sqrt(
+                (deltaX * deltaX) +
+                (deltaY * deltaY));
+
+        var offsetX = 0.0;
+        var offsetY = -12.0;
+
+        if (length >= 1)
+        {
+            offsetX =
+                (-deltaY / length) * 10;
+
+            offsetY =
+                (deltaX / length) * 10;
+        }
+
+        var estimatedWidth =
+            Math.Max(
+                64,
+                (edge.Relationship.Length * 6.5) + 16);
+
+        var label =
+            new Border
+            {
+                MinWidth = 64,
+                MaxWidth = 180,
+
+                Padding =
+                    new Thickness(
+                        7,
+                        3),
+
+                CornerRadius =
+                    new CornerRadius(6),
+
+                Background =
+                    new SolidColorBrush(
+                        Color.Parse("#E60B1220")),
+
+                BorderBrush = edgeBrush,
+
+                BorderThickness =
+                    new Thickness(1),
+
+                Child =
+                    new TextBlock
+                    {
+                        Text =
+                            edge.Relationship,
+
+                        FontSize = 11,
+
+                        FontWeight =
+                            FontWeight.SemiBold,
+
+                        Foreground =
+                            new SolidColorBrush(
+                                Color.Parse("#E2E8F0")),
+
+                        TextWrapping =
+                            TextWrapping.Wrap,
+
+                        TextAlignment =
+                            TextAlignment.Center
+                    }
+            };
+
+        Canvas.SetLeft(
+            label,
+            midpointX +
+            offsetX -
+            (estimatedWidth / 2));
+
+        Canvas.SetTop(
+            label,
+            midpointY +
+            offsetY -
+            12);
+
+        RootCanvas.Children.Add(label);
+    }
+
+    private static Point FindNodeBoundaryPoint(
+        Point nodeCenter,
+        Point otherCenter)
+    {
+        var deltaX =
+            otherCenter.X -
+            nodeCenter.X;
+
+        var deltaY =
+            otherCenter.Y -
+            nodeCenter.Y;
+
+        if (Math.Abs(deltaX) < 0.001 &&
+            Math.Abs(deltaY) < 0.001)
+        {
+            return nodeCenter;
+        }
+
+        const double halfWidth = 84;
+        const double halfHeight = 39;
+
+        var horizontalScale =
+            Math.Abs(deltaX) < 0.001
+                ? double.PositiveInfinity
+                : halfWidth /
+                  Math.Abs(deltaX);
+
+        var verticalScale =
+            Math.Abs(deltaY) < 0.001
+                ? double.PositiveInfinity
+                : halfHeight /
+                  Math.Abs(deltaY);
+
+        var scale =
+            Math.Min(
+                horizontalScale,
+                verticalScale);
+
+        return new Point(
+            nodeCenter.X +
+            (deltaX * scale),
+            nodeCenter.Y +
+            (deltaY * scale));
+    }
+
+    private static Color GetRelationshipColor(
+        RelationshipKind kind)
+    {
+        return kind switch
+        {
+            RelationshipKind.Contains or
+            RelationshipKind.MemberOf =>
+                Color.Parse("#A78BFA"),
+
+            RelationshipKind.AttachedTo or
+            RelationshipKind.HostedOn =>
+                Color.Parse("#60A5FA"),
+
+            RelationshipKind.DependsOn or
+            RelationshipKind.Uses =>
+                Color.Parse("#FBBF24"),
+
+            RelationshipKind.ConnectedTo or
+            RelationshipKind.RoutesThrough =>
+                Color.Parse("#22D3EE"),
+
+            RelationshipKind.SecuredBy =>
+                Color.Parse("#FB7185"),
+
+            RelationshipKind.Serves or
+            RelationshipKind.Targets =>
+                Color.Parse("#34D399"),
+
+            RelationshipKind.AssociatedWith =>
+                Color.Parse("#C084FC"),
+
+            _ =>
+                Color.Parse("#64748B")
+        };
     }
 
     private void RenderNodes(
