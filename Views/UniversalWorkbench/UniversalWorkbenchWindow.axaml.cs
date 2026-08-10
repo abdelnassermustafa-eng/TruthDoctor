@@ -80,7 +80,9 @@ public partial class UniversalWorkbenchWindow : Window
 
         _topology =
             new WorkbenchTopologyController(
-                _graphContext);
+                _graphContext,
+                _selection,
+                _workbenchState);
 
         _status =
             new WorkbenchStatusController(
@@ -111,15 +113,34 @@ public partial class UniversalWorkbenchWindow : Window
                 return;
             }
 
-            _selection.SelectResource(
-                resource);
+            if (_topology.NavigateTo(resource))
+            {
+                RenderTopologySelection();
+            }
+        };
 
-            _details.RenderSelectedResource(
-                ResourceDetailsPanel,
-                AssistantStatusText);
+        TopologyWorkspace.BackRequested += () =>
+        {
+            if (_topology.GoBack())
+            {
+                RenderTopologySelection();
+            }
+        };
 
-            TopologyWorkspace.Render(
-                _topology.Current);
+        TopologyWorkspace.ForwardRequested += () =>
+        {
+            if (_topology.GoForward())
+            {
+                RenderTopologySelection();
+            }
+        };
+
+        TopologyWorkspace.HomeRequested += () =>
+        {
+            if (_topology.GoHome())
+            {
+                RenderTopologySelection();
+            }
         };
 
         _clockTimer = new DispatcherTimer
@@ -850,6 +871,21 @@ public partial class UniversalWorkbenchWindow : Window
         return LocationComboBox.SelectedItem?.ToString();
     }
 
+    private void RenderTopologySelection()
+    {
+        _details.RenderSelectedResource(
+            ResourceDetailsPanel,
+            AssistantStatusText);
+
+        TopologyWorkspace.Render(
+            _topology.Current);
+
+        TopologyWorkspace.SetNavigationState(
+            _topology.CanGoBack,
+            _topology.CanGoForward,
+            _topology.CanGoHome);
+    }
+
     private void NavigateToWorkspace(
         string view)
     {
@@ -858,11 +894,9 @@ public partial class UniversalWorkbenchWindow : Window
                 "topology",
                 StringComparison.OrdinalIgnoreCase))
         {
-            var topology =
-                _topology.Current;
+            _topology.BeginSession();
 
-            TopologyWorkspace.Render(
-                topology);
+            RenderTopologySelection();
         }
 
         _navigation.ShowWorkspace(

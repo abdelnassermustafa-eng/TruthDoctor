@@ -7,17 +7,72 @@
         Background="#0F172A"
         BorderBrush="#1E293B"
         BorderThickness="1"
-        CornerRadius="8"
-        Padding="12">
+        CornerRadius="8">
 
-        <ScrollViewer
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto">
+        <Grid RowDefinitions="Auto,*">
 
-            <Canvas
-                x:Name="RootCanvas"
-                Width="1600"
-                Height="1000"/>
-        </ScrollViewer>
+            <Border
+                Grid.Row="0"
+                Padding="12,9"
+                Background="#0B1728"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto"
+                      ColumnSpacing="8">
+
+                    <Button
+                        Grid.Column="0"
+                        Name="TopologyBackButton"
+                        Content="←  Back"
+                        IsEnabled="False"
+                        Padding="12,6"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyBackButton_OnClick"/>
+
+                    <Button
+                        Grid.Column="1"
+                        Name="TopologyForwardButton"
+                        Content="Forward  →"
+                        IsEnabled="False"
+                        Padding="12,6"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyForwardButton_OnClick"/>
+
+                    <Button
+                        Grid.Column="2"
+                        Name="TopologyHomeButton"
+                        Content="⌂  Home"
+                        IsEnabled="False"
+                        Padding="12,6"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyHomeButton_OnClick"/>
+
+                    <TextBlock
+                        Grid.Column="4"
+                        Text="Click a resource to explore"
+                        Foreground="#7F9AB8"
+                        VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <ScrollViewer
+                Grid.Row="1"
+                Padding="12"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto">
+
+                <Canvas
+                    x:Name="RootCanvas"
+                    Width="1600"
+                    Height="1000"/>
+            </ScrollViewer>
+        </Grid>
     </Border>
 </UserControl>

@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using TruthDoctor.Graph;
 using TruthDoctor.Services.Visuals;
@@ -20,9 +21,51 @@ public partial class TopologyCanvas : UserControl
 
     public event Action<TopologyNode>? NodeInvoked;
 
+    public event Action? BackRequested;
+
+    public event Action? ForwardRequested;
+
+    public event Action? HomeRequested;
+
     public TopologyCanvas()
     {
         InitializeComponent();
+    }
+
+    public void SetNavigationState(
+        bool canGoBack,
+        bool canGoForward,
+        bool canGoHome)
+    {
+        TopologyBackButton.IsEnabled =
+            canGoBack;
+
+        TopologyForwardButton.IsEnabled =
+            canGoForward;
+
+        TopologyHomeButton.IsEnabled =
+            canGoHome;
+    }
+
+    private void TopologyBackButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        BackRequested?.Invoke();
+    }
+
+    private void TopologyForwardButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        ForwardRequested?.Invoke();
+    }
+
+    private void TopologyHomeButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        HomeRequested?.Invoke();
     }
 
     public void Render(
