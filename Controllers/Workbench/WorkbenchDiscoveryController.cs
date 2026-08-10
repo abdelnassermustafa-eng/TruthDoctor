@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TruthDoctor.Services;
 using TruthDoctor.State;
+using TruthDoctor.Graph;
 
 namespace TruthDoctor.Controllers.Workbench;
 
@@ -10,13 +11,22 @@ public sealed class WorkbenchDiscoveryController
 {
     private readonly WorkbenchState _state;
     private readonly PlatformStateClient _client;
+    private readonly InfrastructureGraphBuilder
+        _graphBuilder;
 
     public WorkbenchDiscoveryController(
         WorkbenchState state,
-        PlatformStateClient? client = null)
+        PlatformStateClient? client = null,
+        InfrastructureGraphBuilder? graphBuilder = null)
     {
         _state = state;
-        _client = client ?? new PlatformStateClient();
+
+        _client =
+            client ?? new PlatformStateClient();
+
+        _graphBuilder =
+            graphBuilder ??
+            new InfrastructureGraphBuilder();
     }
 
     public event EventHandler? DiscoveryStarted;
@@ -66,6 +76,11 @@ public sealed class WorkbenchDiscoveryController
                 cancellationToken);
 
             _state.SetPlatformState(platformState);
+
+            var graph =
+                _graphBuilder.Build(platformState);
+
+            _state.SetInfrastructureGraph(graph);
 
             if (!string.IsNullOrWhiteSpace(location))
             {

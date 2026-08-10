@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TruthDoctor.Models.Platform;
+using TruthDoctor.Graph;
 
 namespace TruthDoctor.State;
 
@@ -8,7 +9,31 @@ public sealed class WorkbenchState
 {
     public PlatformState? PlatformState { get; private set; }
 
-    public InfrastructureResource? SelectedResource { get; set; }
+    public InfrastructureGraph? InfrastructureGraph
+    { get; private set; }
+
+
+    public InfrastructureGraphIndex? InfrastructureGraphIndex
+    { get; private set; }
+
+    public InfrastructureImpactAnalyzer? InfrastructureImpactAnalyzer
+    { get; private set; }
+
+    public InfrastructurePathAnalyzer? InfrastructurePathAnalyzer
+    { get; private set; }
+
+    public InfrastructureRelationshipAnalyzer?
+        InfrastructureRelationshipAnalyzer
+    { get; private set; }
+
+    public GraphIntelligenceQueries? GraphIntelligence
+    { get; private set; }
+
+    public ResourceGraphContext? SelectedResourceContext
+    { get; private set; }
+
+    public InfrastructureResource? SelectedResource
+    { get; private set; }
 
     public string CurrentView { get; set; } = "dashboard";
 
@@ -53,6 +78,57 @@ public sealed class WorkbenchState
             platformState.Resources;
 
         LastError = "";
+
+        NotifyChanged();
+    }
+
+
+    public void SetInfrastructureGraph(
+        InfrastructureGraph graph)
+    {
+        ArgumentNullException.ThrowIfNull(graph);
+
+        InfrastructureGraph = graph;
+        InfrastructureGraphIndex =
+            new InfrastructureGraphIndex(graph);
+
+        InfrastructureImpactAnalyzer =
+            new InfrastructureImpactAnalyzer(
+                InfrastructureGraphIndex);
+
+        InfrastructurePathAnalyzer =
+            new InfrastructurePathAnalyzer(
+                InfrastructureGraphIndex);
+
+        InfrastructureRelationshipAnalyzer =
+            new InfrastructureRelationshipAnalyzer(
+                InfrastructureGraphIndex);
+
+        GraphIntelligence =
+            new GraphIntelligenceQueries(
+                InfrastructureGraphIndex);
+
+        if (SelectedResource is not null)
+        {
+            SelectedResourceContext =
+                GraphIntelligence.DescribeResource(
+                    SelectedResource);
+        }
+
+        NotifyChanged();
+    }
+
+
+    public void SetSelectedResource(
+        InfrastructureResource? resource)
+    {
+        SelectedResource = resource;
+
+        SelectedResourceContext =
+            resource is not null &&
+            GraphIntelligence is not null
+                ? GraphIntelligence.DescribeResource(resource)
+                : null;
 
         NotifyChanged();
     }

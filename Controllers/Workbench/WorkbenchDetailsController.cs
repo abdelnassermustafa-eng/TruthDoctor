@@ -196,6 +196,8 @@ public sealed class WorkbenchDetailsController
             }
         }
 
+        RenderGraphContext(detailsPanel);
+
         assistantStatus.Text =
             $"Selected {resource.ResourceType}: " +
             $"{resource.DisplayName}.";
@@ -220,6 +222,133 @@ public sealed class WorkbenchDetailsController
 
         assistantStatus.Text =
             "Waiting for a resource selection.";
+    }
+
+    private void RenderGraphContext(
+        StackPanel detailsPanel)
+    {
+        var context =
+            _state.SelectedResourceContext;
+
+        if (context is null ||
+            context.Resource is null)
+        {
+            return;
+        }
+
+        AddSeparator(detailsPanel);
+
+        AddSectionTitle(
+            detailsPanel,
+            "Infrastructure Intelligence");
+
+        AddDetail(
+            detailsPanel,
+            "Dependencies",
+            context.Dependencies.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Dependents",
+            context.Dependents.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Security",
+            context.Security.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Connectivity",
+            context.Connectivity.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Contains",
+            context.Contains.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Contained By",
+            context.ContainedBy.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Neighborhood",
+            context.Neighborhood.Count.ToString());
+
+        AddDetail(
+            detailsPanel,
+            "Blast Radius",
+            context.Impact.TotalAffectedCount.ToString());
+
+        if (context.Dependencies.Count > 0)
+        {
+            AddSectionTitle(
+                detailsPanel,
+                "Depends On");
+
+            foreach (var node in
+                     context.Dependencies.Resources
+                         .Take(10))
+            {
+                AddDetail(
+                    detailsPanel,
+                    node.ResourceType,
+                    node.DisplayName);
+            }
+        }
+
+        if (context.Dependents.Count > 0)
+        {
+            AddSectionTitle(
+                detailsPanel,
+                "Dependent Resources");
+
+            foreach (var node in
+                     context.Dependents.Resources
+                         .Take(10))
+            {
+                AddDetail(
+                    detailsPanel,
+                    node.ResourceType,
+                    node.DisplayName);
+            }
+        }
+
+        if (context.Security.Count > 0)
+        {
+            AddSectionTitle(
+                detailsPanel,
+                "Security Relationships");
+
+            foreach (var node in
+                     context.Security.Resources
+                         .Take(10))
+            {
+                AddDetail(
+                    detailsPanel,
+                    node.ResourceType,
+                    node.DisplayName);
+            }
+        }
+
+        if (context.Connectivity.Count > 0)
+        {
+            AddSectionTitle(
+                detailsPanel,
+                "Connected Resources");
+
+            foreach (var node in
+                     context.Connectivity.Resources
+                         .Take(10))
+            {
+                AddDetail(
+                    detailsPanel,
+                    node.ResourceType,
+                    node.DisplayName);
+            }
+        }
     }
 
     private static void AddSectionTitle(

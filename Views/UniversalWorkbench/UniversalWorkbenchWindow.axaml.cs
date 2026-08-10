@@ -42,6 +42,12 @@ public partial class UniversalWorkbenchWindow : Window
     private readonly WorkbenchSelectionController
         _selection;
 
+    private readonly WorkbenchGraphContextController
+        _graphContext;
+
+    private readonly WorkbenchTopologyController
+        _topology;
+
     private readonly WorkbenchStatusController
         _status;
 
@@ -67,6 +73,14 @@ public partial class UniversalWorkbenchWindow : Window
         _selection =
             new WorkbenchSelectionController(
                 _workbenchState);
+
+        _graphContext =
+            new WorkbenchGraphContextController(
+                _workbenchState);
+
+        _topology =
+            new WorkbenchTopologyController(
+                _graphContext);
 
         _status =
             new WorkbenchStatusController(
@@ -102,25 +116,24 @@ public partial class UniversalWorkbenchWindow : Window
             await LoadStateAsync(GetSelectedLocation());
 
         TopBar.OperateRequested += (_, _) =>
-            _navigation.ShowWorkspace(
-                "operations",
-                DashboardWorkspace,
-                SecondaryWorkspace,
-                SecondaryWorkspaceTitle,
-                SecondaryWorkspaceDescription,
-                SecondaryWorkspaceList);
+            NavigateToWorkspace(
+                "operations");
 
         TopBar.ViewRequested += (_, view) =>
-            _navigation.ShowWorkspace(
-                view,
-                DashboardWorkspace,
-                SecondaryWorkspace,
-                SecondaryWorkspaceTitle,
-                SecondaryWorkspaceDescription,
-                SecondaryWorkspaceList);
+            NavigateToWorkspace(view);
 
         TopBar.SearchChanged += (_, search) =>
         {
+            if (_workbenchState.CurrentView.Equals(
+                    "resources",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                SecondaryWorkspaceSearchTextBox.Text =
+                    search;
+
+                return;
+            }
+
             ResourceSearchTextBox.Text = search;
             ApplyFilters();
         };
@@ -298,6 +311,8 @@ public partial class UniversalWorkbenchWindow : Window
                 Tag = domain.Id
             };
 
+            button.Classes.Add("nav-item");
+            button.Classes.Add("domain-item");
             button.Click += DomainNavigationButton_OnClick;
 
             DomainNavigationPanel.Children.Add(button);
@@ -522,6 +537,105 @@ public partial class UniversalWorkbenchWindow : Window
         };
     }
 
+    private void RenderSecondaryResources()
+    {
+        SecondaryWorkspaceList.Items.Clear();
+
+        if (_state is null)
+        {
+            SecondaryWorkspaceDescription.Text =
+                "No infrastructure state is loaded.";
+
+            return;
+        }
+
+        var search =
+            SecondaryWorkspaceSearchTextBox.Text?.Trim() ?? "";
+
+        var resources =
+            _state.Resources
+                .Where(resource =>
+                    MatchesResourceSearch(
+                        resource,
+                        search))
+                .OrderBy(resource =>
+                    resource.DomainId)
+                .ThenBy(resource =>
+                    resource.ResourceType)
+                .ThenBy(resource =>
+                    resource.DisplayName)
+                .ToList();
+
+        foreach (var resource in resources)
+        {
+            SecondaryWorkspaceList.Items.Add(
+                CreateResourceRow(resource));
+        }
+
+        SecondaryWorkspaceDescription.Text =
+            $"{resources.Count} of " +
+            $"{_state.TotalResourceCount} resources";
+    }
+
+    private static bool MatchesResourceSearch(
+        InfrastructureResource resource,
+        string search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return true;
+        }
+
+        return ContainsSearch(
+                   resource.DisplayName,
+                   search) ||
+               ContainsSearch(
+                   resource.NativeId,
+                   search) ||
+               ContainsSearch(
+                   resource.ResourceId,
+                   search) ||
+               ContainsSearch(
+                   resource.ResourceType,
+                   search) ||
+               ContainsSearch(
+                   resource.DomainId,
+                   search) ||
+               ContainsSearch(
+                   resource.State,
+                   search) ||
+               ContainsSearch(
+                   resource.Location,
+                   search) ||
+               ContainsSearch(
+                   resource.AccountId,
+                   search) ||
+               resource.Properties.Any(item =>
+                   ContainsSearch(
+                       item.Key,
+                       search) ||
+                   ContainsSearch(
+                       item.Value,
+                       search)) ||
+               resource.Tags.Any(item =>
+                   ContainsSearch(
+                       item.Key,
+                       search) ||
+                   ContainsSearch(
+                       item.Value,
+                       search));
+    }
+
+    private static bool ContainsSearch(
+        string? value,
+        string search)
+    {
+        return value?.Contains(
+                   search,
+                   StringComparison.OrdinalIgnoreCase)
+               == true;
+    }
+
     private void SetLoadingState()
     {
         _status.ApplyLoading(
@@ -581,6 +695,8 @@ public partial class UniversalWorkbenchWindow : Window
             return;
         }
 
+        SetActiveDomainNavigation(button);
+
         _selection.SelectDomain(domain.Id);
 
         DomainFilterComboBox.SelectedItem =
@@ -593,14 +709,43 @@ public partial class UniversalWorkbenchWindow : Window
         object? sender,
         SelectionChangedEventArgs e)
     {
-        if (ResourceListBox.SelectedItem is
-                ListBoxItem item &&
-            item.Tag is InfrastructureResource resource)
+        SelectResourceFromList(
+            ResourceListBox);
+    }
+
+    private void SecondaryWorkspaceList_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs e)
+    {
+        SelectResourceFromList(
+            SecondaryWorkspaceList);
+    }
+
+    private void SelectResourceFromList(
+        ListBox list)
+    {
+        if (list.SelectedItem is not ListBoxItem item ||
+            item.Tag is not InfrastructureResource resource)
         {
-            _details.Render(
-                resource,
-                ResourceDetailsPanel,
-                AssistantStatusText);
+            return;
+        }
+
+        _selection.SelectResource(resource);
+
+        _details.RenderSelectedResource(
+            ResourceDetailsPanel,
+            AssistantStatusText);
+    }
+
+    private void SecondaryWorkspaceSearchTextBox_OnTextChanged(
+        object? sender,
+        TextChangedEventArgs e)
+    {
+        if (_workbenchState.CurrentView.Equals(
+                "resources",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            RenderSecondaryResources();
         }
     }
 
@@ -681,6 +826,127 @@ public partial class UniversalWorkbenchWindow : Window
         return LocationComboBox.SelectedItem?.ToString();
     }
 
+    private void NavigateToWorkspace(
+        string view)
+    {
+        SetActivePrimaryNavigation(view);
+        if (view.Equals(
+                "topology",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            var topology =
+                _topology.Current;
+
+            TopologyWorkspace.Render(
+                topology);
+        }
+
+        _navigation.ShowWorkspace(
+            view,
+            DashboardWorkspace,
+            TopologyWorkspace,
+            SecondaryWorkspace,
+            SecondaryWorkspaceTitle,
+            SecondaryWorkspaceDescription,
+            SecondaryWorkspaceList);
+
+        var isResources =
+            view.Equals(
+                "resources",
+                StringComparison.OrdinalIgnoreCase);
+
+        SecondaryWorkspaceSearchTextBox.IsVisible =
+            isResources;
+
+        if (isResources)
+        {
+            RenderSecondaryResources();
+        }
+    }
+
+    private void SetActivePrimaryNavigation(
+        string view)
+    {
+        var primaryButtons = new[]
+        {
+            DashboardNavButton,
+            ResourcesNavButton,
+            OperationsNavButton,
+            TopologyNavButton,
+            HistoryNavButton,
+            ReportsNavButton,
+            SettingsNavButton
+        };
+
+        foreach (var button in primaryButtons)
+        {
+            var isActive =
+                button.Tag is string tag &&
+                tag.Equals(
+                    view,
+                    StringComparison.OrdinalIgnoreCase);
+
+            SetActiveClass(
+                button,
+                isActive);
+        }
+
+        foreach (var child in
+                 DomainNavigationPanel.Children.OfType<Button>())
+        {
+            SetActiveClass(
+                child,
+                false);
+        }
+    }
+
+    private void SetActiveDomainNavigation(
+        Button selectedButton)
+    {
+        foreach (var button in new[]
+                 {
+                     DashboardNavButton,
+                     ResourcesNavButton,
+                     OperationsNavButton,
+                     TopologyNavButton,
+                     HistoryNavButton,
+                     ReportsNavButton,
+                     SettingsNavButton
+                 })
+        {
+            SetActiveClass(
+                button,
+                false);
+        }
+
+        foreach (var child in
+                 DomainNavigationPanel.Children.OfType<Button>())
+        {
+            SetActiveClass(
+                child,
+                ReferenceEquals(
+                    child,
+                    selectedButton));
+        }
+    }
+
+    private static void SetActiveClass(
+        Button button,
+        bool isActive)
+    {
+        if (isActive)
+        {
+            if (!button.Classes.Contains("active"))
+            {
+                button.Classes.Add("active");
+            }
+
+            return;
+        }
+
+        button.Classes.Remove("active");
+    }
+
     private void NavigationButton_OnClick(
         object? sender,
         RoutedEventArgs e)
@@ -688,13 +954,7 @@ public partial class UniversalWorkbenchWindow : Window
         if (sender is Button button &&
             button.Tag is string view)
         {
-            _navigation.ShowWorkspace(
-                view,
-                DashboardWorkspace,
-                SecondaryWorkspace,
-                SecondaryWorkspaceTitle,
-                SecondaryWorkspaceDescription,
-                SecondaryWorkspaceList);
+            NavigateToWorkspace(view);
         }
     }
 
@@ -709,13 +969,7 @@ public partial class UniversalWorkbenchWindow : Window
             return;
         }
 
-        _navigation.ShowWorkspace(
-            action,
-            DashboardWorkspace,
-            SecondaryWorkspace,
-            SecondaryWorkspaceTitle,
-            SecondaryWorkspaceDescription,
-            SecondaryWorkspaceList);
+        NavigateToWorkspace(action);
     }
 
     private void ShowInformation(

@@ -21,7 +21,6 @@ public sealed class WorkbenchSelectionController
         _state.SelectedProviderId =
             providerId?.Trim() ?? "";
 
-        NotifyChanged();
     }
 
     public void SelectAccount(string? accountId)
@@ -51,7 +50,7 @@ public sealed class WorkbenchSelectionController
     public void SelectResource(
         InfrastructureResource? resource)
     {
-        _state.SelectedResource = resource;
+        _state.SetSelectedResource(resource);
 
         if (resource is not null)
         {
@@ -73,7 +72,7 @@ public sealed class WorkbenchSelectionController
 
     public void ClearResource()
     {
-        _state.SelectedResource = null;
+        _state.SetSelectedResource(null);
 
         NotifyChanged();
     }
@@ -84,7 +83,7 @@ public sealed class WorkbenchSelectionController
         _state.SelectedAccountId = "";
         _state.SelectedLocation = "";
         _state.SelectedDomainId = "";
-        _state.SelectedResource = null;
+        _state.SetSelectedResource(null);
 
         NotifyChanged();
     }

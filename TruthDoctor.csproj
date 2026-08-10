@@ -29,6 +29,7 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +37,11 @@
     <Compile Remove="Archive/**" />
     <EmbeddedResource Remove="Archive/**" />
     <None Include="Archive/**" />
+
+    <AvaloniaXaml Remove="Tests/**" />
+    <Compile Remove="Tests/**" />
+    <EmbeddedResource Remove="Tests/**" />
+    <None Remove="Tests/**" />
   </ItemGroup>
 
 </Project>

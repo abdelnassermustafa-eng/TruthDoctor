@@ -18,6 +18,7 @@ public sealed class WorkbenchNavigationController
     public void ShowWorkspace(
         string view,
         ScrollViewer dashboardWorkspace,
+        Control topologyWorkspace,
         Border secondaryWorkspace,
         TextBlock title,
         TextBlock description,
@@ -30,11 +31,23 @@ public sealed class WorkbenchNavigationController
             StringComparison.OrdinalIgnoreCase))
         {
             dashboardWorkspace.IsVisible = true;
+            topologyWorkspace.IsVisible = false;
+            secondaryWorkspace.IsVisible = false;
+            return;
+        }
+
+        if (view.Equals(
+            "topology",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            dashboardWorkspace.IsVisible = false;
+            topologyWorkspace.IsVisible = true;
             secondaryWorkspace.IsVisible = false;
             return;
         }
 
         dashboardWorkspace.IsVisible = false;
+        topologyWorkspace.IsVisible = false;
         secondaryWorkspace.IsVisible = true;
 
         list.Items.Clear();
@@ -46,24 +59,7 @@ public sealed class WorkbenchNavigationController
                 title.Text = "Resources";
 
                 description.Text =
-                    "All resources in the current infrastructure state.";
-
-                if (_state.PlatformState is not null)
-                {
-                    foreach (var resource in
-                        _state.PlatformState.Resources
-                            .OrderBy(x => x.DomainId)
-                            .ThenBy(x => x.ResourceType)
-                            .ThenBy(x => x.DisplayName))
-                    {
-                        list.Items.Add(
-                            $"{resource.DomainId} · " +
-                            $"{resource.ResourceType} · " +
-                            $"{resource.DisplayName} · " +
-                            $"{resource.State} · " +
-                            $"{resource.Location}");
-                    }
-                }
+                    "Search, select, and inspect discovered resources.";
 
                 break;
 

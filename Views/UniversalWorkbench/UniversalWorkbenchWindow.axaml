@@ -1,6 +1,7 @@
 <Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:topology="clr-namespace:TruthDoctor.Controls.Topology"
     xmlns:controls="clr-namespace:TruthDoctor.Controls.Workbench"
     x:Class="TruthDoctor.Views.UniversalWorkbench.UniversalWorkbenchWindow"
     Title="TruthDoctor Universal Infrastructure Workbench"
@@ -10,96 +11,318 @@
     MinHeight="760"
     Background="#07111F">
 
+    <Window.Styles>
+        <Style Selector="Button.nav-item">
+            <Setter Property="MinHeight" Value="42"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Padding" Value="13,9"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
+        <Style Selector="Button.nav-item:pointerover">
+            <Setter Property="Background" Value="#15263D"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#243B5A"/>
+        </Style>
+
+        <Style Selector="Button.domain-item">
+            <Setter Property="MinHeight" Value="38"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#AFC0D5"/>
+        </Style>
+
+        <Style Selector="Button.nav-item.active">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="Expander.nav-expander">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Styles>
+
     <Grid RowDefinitions="96,*,30">
 
         <controls:WorkbenchTopBar Grid.Row="0" Name="TopBar"/>
 
         <Grid Grid.Row="1"
-              ColumnDefinitions="210,*,370">
+              ColumnDefinitions="290,*,370">
 
             <Border Grid.Column="0"
-                    Background="#091526"
-                    BorderBrush="#223149"
+                    Background="#081525"
+                    BorderBrush="#1E324C"
                     BorderThickness="0,0,1,0">
 
                 <Grid RowDefinitions="*,Auto">
 
-                    <StackPanel Margin="12"
-                                Spacing="6">
+                    <ScrollViewer Grid.Row="0"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
 
-                        <TextBlock Text="PLATFORM"
-                                   Margin="7,6,0,8"
-                                   FontSize="10"
-                                   FontWeight="Bold"
-                                   Foreground="#64748B"/>
+                        <StackPanel Margin="14,14,14,10"
+                                    Spacing="3">
 
-                        <Button Name="DashboardNavButton" Content="▦   Dashboard" Click="NavigationButton_OnClick" Tag="dashboard"
-                                HorizontalContentAlignment="Left"
-                                Padding="12,10"
-                                Background="#155EEF"
-                                Foreground="White"/>
+                            <TextBlock Text="WORKBENCH"
+                                       Margin="11,4,0,9"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       LetterSpacing="1.2"
+                                       Foreground="#64748B"/>
+                            <Button Name="DashboardNavButton"
+                                    Classes="nav-item active"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="dashboard">
 
-                        <Expander Header="◉   Infrastructure"
-                                  IsExpanded="True">
+                                <Grid ColumnDefinitions="28,*">
 
-                            <StackPanel Name="DomainNavigationPanel"
-                                        Margin="18,6,0,4"
-                                        Spacing="3">
+                                    <TextBlock Text="▦"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
 
-                                <TextBlock Name="EmptyDomainsText"
-                                           Margin="10,7"
-                                           Foreground="#64748B"
-                                           Text="Domains appear after discovery"/>
-                            </StackPanel>
-                        </Expander>
+                                    <TextBlock Grid.Column="1"
+                                               Text="Dashboard"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
 
-                        <Button Name="ResourcesNavButton" Content="◇   Resources" Click="NavigationButton_OnClick" Tag="resources"
-                                HorizontalContentAlignment="Left"
-                                Padding="12,10"/>
+                            <Border Margin="0,7,0,8"
+                                    Padding="5"
+                                    CornerRadius="10"
+                                    Background="#0D1D31"
+                                    BorderBrush="#1B324F"
+                                    BorderThickness="1">
 
-                        <Button Name="OperationsNavButton" Content="⇄   Operations" Click="NavigationButton_OnClick" Tag="operations"
-                                HorizontalContentAlignment="Left"
-                                Padding="12,10"/>
+                                <Expander Classes="nav-expander"
+                                          IsExpanded="True">
 
-                        <Button Name="HistoryNavButton" Content="◷   History" Click="NavigationButton_OnClick" Tag="history"
-                                HorizontalContentAlignment="Left"
-                                Padding="12,10"/>
+                                    <Expander.Header>
+                                        <Grid ColumnDefinitions="28,*">
 
-                        <Button Name="ReportsNavButton" Content="▤   Reports" Click="NavigationButton_OnClick" Tag="reports"
-                                HorizontalContentAlignment="Left"
-                                Padding="12,10"/>
+                                            <TextBlock Text="●"
+                                                       FontSize="15"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
 
-                        <Button Name="SettingsNavButton" Content="⚙   Settings" Click="NavigationButton_OnClick" Tag="settings"
-                                HorizontalContentAlignment="Left"
-                                Padding="12,10"/>
-                    </StackPanel>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="Infrastructure"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Expander.Header>
+
+                                    <StackPanel
+                                        Name="DomainNavigationPanel"
+                                        Margin="11,7,0,4"
+                                        Spacing="2">
+
+                                        <TextBlock
+                                            Name="EmptyDomainsText"
+                                            Margin="12,8"
+                                            FontSize="12"
+                                            TextWrapping="Wrap"
+                                            Foreground="#64748B"
+                                            Text="Domains appear after discovery"/>
+                                    </StackPanel>
+                                </Expander>
+                            </Border>
+
+                            <TextBlock Text="TOOLS"
+                                       Margin="11,7,0,6"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       LetterSpacing="1.2"
+                                       Foreground="#64748B"/>
+                            <Button Name="ResourcesNavButton"
+                                    Classes="nav-item"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="resources">
+
+                                <Grid ColumnDefinitions="28,*">
+
+                                    <TextBlock Text="◇"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Resources"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                            <Button Name="OperationsNavButton"
+                                    Classes="nav-item"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="operations">
+
+                                <Grid ColumnDefinitions="28,*">
+
+                                    <TextBlock Text="⇄"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Operations"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                            <Button Name="TopologyNavButton"
+                                    Classes="nav-item"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="topology">
+
+                                <Grid ColumnDefinitions="28,*">
+
+                                    <TextBlock Text="◎"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Topology"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                            <Button Name="HistoryNavButton"
+                                    Classes="nav-item"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="history">
+
+                                <Grid ColumnDefinitions="28,*">
+
+                                    <TextBlock Text="◷"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="History"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                            <Button Name="ReportsNavButton"
+                                    Classes="nav-item"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="reports">
+
+                                <Grid ColumnDefinitions="28,*">
+
+                                    <TextBlock Text="▤"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Reports"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                            <Button Name="SettingsNavButton"
+                                    Classes="nav-item"
+                                    Click="NavigationButton_OnClick"
+                                    Tag="settings">
+
+                                <Grid ColumnDefinitions="28,*">
+
+                                    <TextBlock Text="⚙"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Settings"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
 
                     <Border Grid.Row="1"
-                            Margin="12"
-                            Padding="12"
-                            CornerRadius="10"
-                            Background="#10223A"
-                            BorderBrush="#1E4168"
+                            Margin="14,10,14,14"
+                            Padding="13"
+                            CornerRadius="11"
+                            Background="#0D223B"
+                            BorderBrush="#235181"
                             BorderThickness="1">
 
-                        <StackPanel Spacing="5">
+                        <StackPanel Spacing="6">
 
-                            <TextBlock Text="Discovery status"
-                                       FontSize="10"
-                                       Foreground="#94A3B8"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="DISCOVERY"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           LetterSpacing="1"
+                                           Foreground="#7F9AB8"/>
+
+                                <Border Grid.Column="1"
+                                        Width="8"
+                                        Height="8"
+                                        CornerRadius="4"
+                                        Background="#4ADE80"
+                                        VerticalAlignment="Center"/>
+                            </Grid>
 
                             <TextBlock Name="DiscoveryStatusText"
-                                       Text="● Not connected"
+                                       Text="Not connected"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
                                        Foreground="#FBBF24"/>
 
                             <TextBlock Name="SidebarProviderText"
                                        Text="Provider: Unknown"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Foreground="#E2E8F0"/>
 
                             <TextBlock Name="SidebarRefreshText"
                                        Text="Last refresh: not yet"
                                        FontSize="10"
-                                       Foreground="#64748B"/>
+                                       Foreground="#71849D"/>
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -242,7 +465,14 @@
                         </Grid>
                     </Border>
                 </StackPanel>
+
             </ScrollViewer>
+
+            <topology:TopologyCanvas
+                Grid.Column="1"
+                Name="TopologyWorkspace"
+                IsVisible="False"/>
+
 
             <Border Grid.Column="1"
                     Name="SecondaryWorkspace"
@@ -253,23 +483,32 @@
                     BorderBrush="#263A56"
                     BorderThickness="1">
 
-                <StackPanel Margin="24"
-                            Spacing="12">
+                <Grid Margin="24"
+                      RowDefinitions="Auto,Auto,Auto,*"
+                      RowSpacing="12">
 
                     <TextBlock Name="SecondaryWorkspaceTitle"
                                FontSize="26"
                                FontWeight="Bold"
                                Foreground="#F8FAFC"/>
 
-                    <TextBlock Name="SecondaryWorkspaceDescription"
+                    <TextBlock Grid.Row="1"
+                               Name="SecondaryWorkspaceDescription"
                                Foreground="#94A3B8"
                                TextWrapping="Wrap"/>
 
-                    <ListBox Name="SecondaryWorkspaceList"
-                             Margin="0,14,0,0"
+                    <TextBox Grid.Row="2"
+                             Name="SecondaryWorkspaceSearchTextBox"
+                             IsVisible="False"
+                             Watermark="Search all resources..."
+                             TextChanged="SecondaryWorkspaceSearchTextBox_OnTextChanged"/>
+
+                    <ListBox Grid.Row="3"
+                             Name="SecondaryWorkspaceList"
                              MinHeight="500"
-                             Background="#101B2C"/>
-                </StackPanel>
+                             Background="#101B2C"
+                             SelectionChanged="SecondaryWorkspaceList_OnSelectionChanged"/>
+                </Grid>
             </Border>
 
 
