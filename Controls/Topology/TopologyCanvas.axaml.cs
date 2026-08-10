@@ -19,6 +19,15 @@ public partial class TopologyCanvas : UserControl
             new AwsRenderContributor()
         ]);
 
+    private const double CanvasWidth = 1600;
+    private const double CanvasHeight = 1000;
+
+    private const double MinimumZoom = 0.35;
+    private const double MaximumZoom = 2.00;
+    private const double ZoomStep = 0.15;
+
+    private double _zoom = 1.00;
+
     public event Action<TopologyNode>? NodeInvoked;
 
     public event Action? BackRequested;
@@ -30,6 +39,97 @@ public partial class TopologyCanvas : UserControl
     public TopologyCanvas()
     {
         InitializeComponent();
+
+        ApplyZoom();
+    }
+
+    private void TopologyZoomOutButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        SetZoom(
+            _zoom - ZoomStep);
+    }
+
+    private void TopologyZoomInButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        SetZoom(
+            _zoom + ZoomStep);
+    }
+
+    private void TopologyResetZoomButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        SetZoom(1.00);
+    }
+
+    private void TopologyFitButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        var availableWidth =
+            Math.Max(
+                1,
+                TopologyScrollViewer.Bounds.Width - 32);
+
+        var availableHeight =
+            Math.Max(
+                1,
+                TopologyScrollViewer.Bounds.Height - 32);
+
+        var fitZoom =
+            Math.Min(
+                availableWidth / CanvasWidth,
+                availableHeight / CanvasHeight);
+
+        SetZoom(
+            fitZoom);
+    }
+
+    private void SetZoom(
+        double zoom)
+    {
+        _zoom =
+            Math.Clamp(
+                zoom,
+                MinimumZoom,
+                MaximumZoom);
+
+        ApplyZoom();
+    }
+
+    private void ApplyZoom()
+    {
+        RootCanvas.RenderTransformOrigin =
+            new RelativePoint(
+                0,
+                0,
+                RelativeUnit.Relative);
+
+        RootCanvas.RenderTransform =
+            new ScaleTransform
+            {
+                ScaleX = _zoom,
+                ScaleY = _zoom
+            };
+
+        TopologySurface.Width =
+            CanvasWidth * _zoom;
+
+        TopologySurface.Height =
+            CanvasHeight * _zoom;
+
+        TopologyResetZoomButton.Content =
+            $"{_zoom:P0}";
+
+        TopologyZoomOutButton.IsEnabled =
+            _zoom > MinimumZoom;
+
+        TopologyZoomInButton.IsEnabled =
+            _zoom < MaximumZoom;
     }
 
     public void SetNavigationState(
