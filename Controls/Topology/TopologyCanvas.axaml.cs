@@ -107,8 +107,13 @@ public partial class TopologyCanvas : UserControl
         TopologyView topology,
         IReadOnlyDictionary<string, Point> positions)
     {
-        foreach (var edge in topology.Edges)
+        for (var edgeIndex = 0;
+             edgeIndex < topology.Edges.Count;
+             edgeIndex++)
         {
+            var edge =
+                topology.Edges[edgeIndex];
+
             if (!positions.TryGetValue(
                     edge.SourceId,
                     out var source))
@@ -169,6 +174,7 @@ public partial class TopologyCanvas : UserControl
 
             RenderRelationshipLabel(
                 edge,
+                edgeIndex,
                 startPoint,
                 endPoint,
                 edgeBrush);
@@ -255,15 +261,28 @@ public partial class TopologyCanvas : UserControl
 
     private void RenderRelationshipLabel(
         TopologyEdge edge,
+        int edgeIndex,
         Point startPoint,
         Point endPoint,
         IBrush edgeBrush)
     {
+        var labelFraction =
+            edgeIndex % 3 switch
+            {
+                0 => 0.40,
+                1 => 0.50,
+                _ => 0.60
+            };
+
         var midpointX =
-            (startPoint.X + endPoint.X) / 2;
+            startPoint.X +
+            ((endPoint.X - startPoint.X) *
+             labelFraction);
 
         var midpointY =
-            (startPoint.Y + endPoint.Y) / 2;
+            startPoint.Y +
+            ((endPoint.Y - startPoint.Y) *
+             labelFraction);
 
         var deltaX =
             endPoint.X -
@@ -278,16 +297,27 @@ public partial class TopologyCanvas : UserControl
                 (deltaX * deltaX) +
                 (deltaY * deltaY));
 
+        var laneOffset =
+            edgeIndex % 4 switch
+            {
+                0 => 12.0,
+                1 => -12.0,
+                2 => 22.0,
+                _ => -22.0
+            };
+
         var offsetX = 0.0;
         var offsetY = -12.0;
 
         if (length >= 1)
         {
             offsetX =
-                (-deltaY / length) * 10;
+                (-deltaY / length) *
+                laneOffset;
 
             offsetY =
-                (deltaX / length) * 10;
+                (deltaX / length) *
+                laneOffset;
         }
 
         var estimatedWidth =
