@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Input;
 using Avalonia.Media;
 using TruthDoctor.Graph;
 using TruthDoctor.Services.Visuals;
@@ -16,6 +17,8 @@ public partial class TopologyCanvas : UserControl
         new([
             new AwsRenderContributor()
         ]);
+
+    public event Action<TopologyNode>? NodeInvoked;
 
     public TopologyCanvas()
     {
@@ -517,6 +520,10 @@ public partial class TopologyCanvas : UserControl
                                 : 1)
                 };
 
+            border.Cursor =
+                new Cursor(
+                    StandardCursorType.Hand);
+
             var panel =
                 new StackPanel
                 {
@@ -568,6 +575,13 @@ public partial class TopologyCanvas : UserControl
             border.SetValue(
                 ToolTip.ShowDelayProperty,
                 300);
+
+            border.PointerPressed +=
+                (_, eventArgs) =>
+                {
+                    NodeInvoked?.Invoke(node);
+                    eventArgs.Handled = true;
+                };
 
             Canvas.SetLeft(
                 border,

@@ -98,6 +98,30 @@ public partial class UniversalWorkbenchWindow : Window
 
         InitializeComponent();
 
+        TopologyWorkspace.NodeInvoked += node =>
+        {
+            var graphNode =
+                _workbenchState
+                    .InfrastructureGraphIndex?
+                    .FindNode(node.Id);
+
+            if (graphNode?.Resource is not
+                InfrastructureResource resource)
+            {
+                return;
+            }
+
+            _selection.SelectResource(
+                resource);
+
+            _details.RenderSelectedResource(
+                ResourceDetailsPanel,
+                AssistantStatusText);
+
+            TopologyWorkspace.Render(
+                _topology.Current);
+        };
+
         _clockTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
