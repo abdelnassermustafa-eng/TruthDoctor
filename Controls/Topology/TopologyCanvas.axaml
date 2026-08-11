@@ -209,44 +209,74 @@
                 BorderThickness="0,0,0,1">
 
                 <Grid
-                    ColumnDefinitions="Auto,Auto,*,Auto"
-                    ColumnSpacing="8">
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="8">
 
-                    <TextBlock
-                        Grid.Column="0"
-                        Text="Path"
-                        FontWeight="SemiBold"
-                        Foreground="#E2E8F0"
-                        VerticalAlignment="Center"/>
+                    <Grid
+                        Grid.Row="0"
+                        ColumnDefinitions="Auto,Auto,*,Auto"
+                        ColumnSpacing="8">
 
-                    <Button
-                        Grid.Column="1"
-                        Name="TopologyStartPathButton"
-                        Content="Start path"
-                        Padding="12,5"
-                        Background="#1D4ED8"
-                        Foreground="White"
-                        BorderBrush="#3B82F6"
-                        Click="TopologyStartPathButton_OnClick"/>
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="Path"
+                            FontWeight="SemiBold"
+                            Foreground="#E2E8F0"
+                            VerticalAlignment="Center"/>
 
-                    <TextBlock
-                        Grid.Column="2"
-                        Name="TopologyPathStatusText"
-                        Text="Center a source resource, then start a path"
-                        Foreground="#7F9AB8"
-                        TextWrapping="Wrap"
-                        VerticalAlignment="Center"/>
+                        <Button
+                            Grid.Column="1"
+                            Name="TopologyStartPathButton"
+                            Content="Start path"
+                            Padding="12,5"
+                            Background="#1D4ED8"
+                            Foreground="White"
+                            BorderBrush="#3B82F6"
+                            Click="TopologyStartPathButton_OnClick"/>
 
-                    <Button
-                        Grid.Column="3"
-                        Name="TopologyClearPathButton"
-                        Content="Clear path"
-                        IsEnabled="False"
-                        Padding="10,5"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
-                        Click="TopologyClearPathButton_OnClick"/>
+                        <TextBlock
+                            Grid.Column="2"
+                            Name="TopologyPathStatusText"
+                            Text="Center a source resource, then start a path"
+                            Foreground="#7F9AB8"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"/>
+
+                        <Button
+                            Grid.Column="3"
+                            Name="TopologyClearPathButton"
+                            Content="Clear path"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Background="#15263D"
+                            Foreground="#E2E8F0"
+                            BorderBrush="#334A68"
+                            Click="TopologyClearPathButton_OnClick"/>
+                    </Grid>
+
+                    <Border
+                        Grid.Row="1"
+                        Name="TopologyPathDetailsCard"
+                        IsVisible="False"
+                        Padding="10"
+                        CornerRadius="8"
+                        Background="#101F35"
+                        BorderBrush="#2C4668"
+                        BorderThickness="1">
+
+                        <StackPanel Spacing="8">
+
+                            <TextBlock
+                                Name="TopologyPathDetailsSummaryText"
+                                FontWeight="SemiBold"
+                                Foreground="#E2E8F0"
+                                TextWrapping="Wrap"/>
+
+                            <StackPanel
+                                Name="TopologyPathDetailsPanel"
+                                Spacing="5"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 

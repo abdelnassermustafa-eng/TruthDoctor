@@ -426,6 +426,7 @@ public partial class TopologyCanvas : UserControl
 
         _isRelationshipFocusEnabled = false;
         _activePath = null;
+        ClearPathDetails();
         _isPathSelectionMode = true;
         _pathSourceId = sourceId;
 
@@ -473,12 +474,16 @@ public partial class TopologyCanvas : UserControl
 
         if (!result.Found)
         {
+            ClearPathDetails();
+
             TopologyPathStatusText.Text =
                 "No path exists between the selected resources.";
 
             RenderCurrentTopology();
             return;
         }
+
+        RenderPathDetails(result);
 
         var route =
             string.Join(
@@ -526,6 +531,8 @@ public partial class TopologyCanvas : UserControl
         _pathSourceId = "";
         _activePath = null;
 
+        ClearPathDetails();
+
         TopologyStartPathButton.Content =
             "Start path";
 
@@ -536,6 +543,243 @@ public partial class TopologyCanvas : UserControl
             "Center a source resource, then start a path";
 
         RenderCurrentTopology();
+    }
+
+    private void ClearPathDetails()
+    {
+        TopologyPathDetailsPanel.Children.Clear();
+        TopologyPathDetailsSummaryText.Text = "";
+        TopologyPathDetailsCard.IsVisible = false;
+    }
+
+    private void RenderPathDetails(
+        GraphPathResult result)
+    {
+        ClearPathDetails();
+
+        if (!result.Found ||
+            result.Nodes.Count == 0)
+        {
+            return;
+        }
+
+        var sourceName =
+            PathNodeName(result.Nodes[0]);
+
+        var destinationName =
+            PathNodeName(result.Nodes[^1]);
+
+        TopologyPathDetailsSummaryText.Text =
+            $"{sourceName}  →  {destinationName}  ·  " +
+            $"{result.HopCount} " +
+            (
+                result.HopCount == 1
+                    ? "hop"
+                    : "hops"
+            );
+
+        for (var index = 0;
+             index < result.Nodes.Count;
+             index++)
+        {
+            var node =
+                result.Nodes[index];
+
+            var role =
+                index == 0
+                    ? "START"
+                    : index == result.Nodes.Count - 1
+                        ? "END"
+                        : $"HOP {index}";
+
+            var accent =
+                index == 0
+                    ? "#34D399"
+                    : index == result.Nodes.Count - 1
+                        ? "#F472B6"
+                        : "#FBBF24";
+
+            TopologyPathDetailsPanel.Children.Add(
+                BuildPathNodeButton(
+                    node,
+                    role,
+                    accent));
+
+            if (index >= result.Edges.Count ||
+                index + 1 >= result.Nodes.Count)
+            {
+                continue;
+            }
+
+            TopologyPathDetailsPanel.Children.Add(
+                BuildPathRelationshipRow(
+                    result.Nodes[index],
+                    result.Nodes[index + 1],
+                    result.Edges[index]));
+        }
+
+        TopologyPathDetailsCard.IsVisible = true;
+    }
+
+    private Button BuildPathNodeButton(
+        GraphNode node,
+        string role,
+        string accent)
+    {
+        var roleText =
+            new TextBlock
+            {
+                Text = role,
+                FontSize = 10,
+                FontWeight = FontWeight.Bold,
+                Foreground =
+                    new SolidColorBrush(
+                        Color.Parse(accent))
+            };
+
+        var nameText =
+            new TextBlock
+            {
+                Text = PathNodeName(node),
+                FontSize = 13,
+                FontWeight = FontWeight.SemiBold,
+                Foreground =
+                    new SolidColorBrush(
+                        Color.Parse("#F8FAFC")),
+                TextWrapping = TextWrapping.Wrap
+            };
+
+        var typeText =
+            new TextBlock
+            {
+                Text =
+                    $"{node.DomainId} · " +
+                    $"{node.ResourceType}",
+                FontSize = 11,
+                Foreground =
+                    new SolidColorBrush(
+                        Color.Parse("#8EA6C2")),
+                TextWrapping = TextWrapping.Wrap
+            };
+
+        var content =
+            new StackPanel
+            {
+                Spacing = 2,
+                Children =
+                {
+                    roleText,
+                    nameText,
+                    typeText
+                }
+            };
+
+        var button =
+            new Button
+            {
+                Content = content,
+                Padding = new Thickness(10, 7),
+                HorizontalAlignment =
+                    Avalonia.Layout.HorizontalAlignment.Stretch,
+                HorizontalContentAlignment =
+                    Avalonia.Layout.HorizontalAlignment.Left,
+                Background =
+                    new SolidColorBrush(
+                        Color.Parse("#142740")),
+                BorderBrush =
+                    new SolidColorBrush(
+                        Color.Parse(accent)),
+                BorderThickness =
+                    new Thickness(1),
+                Cursor =
+                    new Cursor(
+                        StandardCursorType.Hand)
+            };
+
+        button.Click +=
+            (_, _) =>
+            {
+                NodeInvoked?.Invoke(
+                    new TopologyNode
+                    {
+                        Id = node.Id,
+                        ProviderId = node.ProviderId,
+                        DomainId = node.DomainId,
+                        ResourceType = node.ResourceType,
+                        DisplayName = node.DisplayName,
+                        IsSelected =
+                            node.Id.Equals(
+                                _currentTopology
+                                    .SelectedResourceId,
+                                StringComparison
+                                    .OrdinalIgnoreCase)
+                    });
+            };
+
+        return button;
+    }
+
+    private static Control BuildPathRelationshipRow(
+        GraphNode current,
+        GraphNode next,
+        GraphEdge edge)
+    {
+        var followsStoredDirection =
+            edge.SourceId.Equals(
+                current.Id,
+                StringComparison.OrdinalIgnoreCase) &&
+            edge.TargetId.Equals(
+                next.Id,
+                StringComparison.OrdinalIgnoreCase);
+
+        var directionText =
+            followsStoredDirection
+                ? "forward"
+                : "reverse traversal";
+
+        var directionSymbol =
+            followsStoredDirection
+                ? "↓"
+                : "↙";
+
+        return new Border
+        {
+            Margin = new Thickness(18, 0, 0, 0),
+            Padding = new Thickness(8, 3),
+            BorderBrush =
+                new SolidColorBrush(
+                    Color.Parse(
+                        followsStoredDirection
+                            ? "#38BDF8"
+                            : "#FBBF24")),
+            BorderThickness =
+                new Thickness(2, 0, 0, 0),
+            Child =
+                new TextBlock
+                {
+                    Text =
+                        $"{directionSymbol}  " +
+                        $"{edge.Relationship}  ·  " +
+                        directionText,
+                    FontSize = 11,
+                    FontWeight =
+                        FontWeight.SemiBold,
+                    Foreground =
+                        new SolidColorBrush(
+                            Color.Parse("#C7D7EA")),
+                    TextWrapping =
+                        TextWrapping.Wrap
+                }
+        };
+    }
+
+    private static string PathNodeName(
+        GraphNode node)
+    {
+        return string.IsNullOrWhiteSpace(
+                node.DisplayName)
+            ? node.Id
+            : node.DisplayName;
     }
 
     public void Render(
@@ -699,6 +943,8 @@ public partial class TopologyCanvas : UserControl
         _isPathSelectionMode = false;
         _pathSourceId = "";
         _activePath = null;
+
+        ClearPathDetails();
 
         TopologyStartPathButton.Content =
             "Start path";
@@ -1902,6 +2148,7 @@ public partial class TopologyCanvas : UserControl
                     }
 
                     _activePath = null;
+                    ClearPathDetails();
                     TopologyClearPathButton.IsEnabled = false;
 
                     TopologyPathStatusText.Text =
