@@ -36,6 +36,17 @@ public partial class TopologyCanvas : UserControl
     private Point _panStart;
     private Vector _panStartOffset;
 
+    private string _searchText = "";
+
+    private List<TopologyNode> _searchMatches =
+        [];
+
+    private int _activeSearchMatchIndex = -1;
+
+    private IReadOnlyDictionary<string, Point> _nodePositions =
+        new Dictionary<string, Point>(
+            StringComparer.OrdinalIgnoreCase);
+
     public event Action<TopologyNode>? NodeInvoked;
 
     public event Action? BackRequested;
@@ -65,7 +76,14 @@ public partial class TopologyCanvas : UserControl
         TopologySurface.PointerCaptureLost +=
             TopologySurface_OnPointerCaptureLost;
 
+        TopologySearchTextBox.TextChanged +=
+            TopologySearchTextBox_OnTextChanged;
+
+        TopologySearchTextBox.KeyDown +=
+            TopologySearchTextBox_OnKeyDown;
+
         ApplyZoom();
+        UpdateSearchControls();
     }
 
     private void TopologyZoomOutButton_OnClick(
@@ -388,6 +406,9 @@ public partial class TopologyCanvas : UserControl
         _currentTopology =
             topology;
 
+        RefreshSearchMatches(
+            preserveActiveMatch: true);
+
         RenderCurrentTopology();
     }
 
@@ -434,6 +455,9 @@ public partial class TopologyCanvas : UserControl
 
         var positions =
             LayoutNodes(topology);
+
+        _nodePositions =
+            positions;
 
         RenderEdges(
             visibleTopology,
@@ -960,6 +984,318 @@ public partial class TopologyCanvas : UserControl
         };
     }
 
+
+    private void TopologySearchTextBox_OnTextChanged(
+        object? sender,
+        TextChangedEventArgs eventArgs)
+    {
+        if (sender is not TextBox textBox)
+        {
+            return;
+        }
+
+        _searchText =
+            textBox.Text?.Trim() ?? "";
+
+        RefreshSearchMatches(
+            preserveActiveMatch: false);
+
+        RenderCurrentTopology();
+
+        if (_searchMatches.Count > 0)
+        {
+            FocusActiveSearchMatch();
+        }
+    }
+
+    private void TopologySearchTextBox_OnKeyDown(
+        object? sender,
+        KeyEventArgs eventArgs)
+    {
+        if (eventArgs.Key != Key.Enter ||
+            _searchMatches.Count == 0)
+        {
+            return;
+        }
+
+        MoveToSearchMatch(
+            eventArgs.KeyModifiers.HasFlag(
+                KeyModifiers.Shift)
+                ? -1
+                : 1);
+
+        eventArgs.Handled = true;
+    }
+
+    private void TopologyPreviousMatchButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        MoveToSearchMatch(-1);
+    }
+
+    private void TopologyNextMatchButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        MoveToSearchMatch(1);
+    }
+
+    private void TopologyClearSearchButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        TopologySearchTextBox.Text = "";
+        TopologySearchTextBox.Focus();
+    }
+
+    private void MoveToSearchMatch(
+        int direction)
+    {
+        if (_searchMatches.Count == 0)
+        {
+            return;
+        }
+
+        _activeSearchMatchIndex =
+            (
+                _activeSearchMatchIndex +
+                direction +
+                _searchMatches.Count
+            ) %
+            _searchMatches.Count;
+
+        UpdateSearchControls();
+        RenderCurrentTopology();
+        FocusActiveSearchMatch();
+    }
+
+    private void RefreshSearchMatches(
+        bool preserveActiveMatch)
+    {
+        var previousActiveId =
+            preserveActiveMatch &&
+            _activeSearchMatchIndex >= 0 &&
+            _activeSearchMatchIndex < _searchMatches.Count
+                ? _searchMatches[
+                    _activeSearchMatchIndex].Id
+                : "";
+
+        if (string.IsNullOrWhiteSpace(
+                _searchText))
+        {
+            _searchMatches.Clear();
+            _activeSearchMatchIndex = -1;
+            UpdateSearchControls();
+            return;
+        }
+
+        _searchMatches =
+            _currentTopology.Nodes
+                .Where(node =>
+                    MatchesTopologySearch(
+                        node,
+                        _searchText))
+                .OrderBy(node =>
+                    node.DisplayName,
+                    StringComparer.OrdinalIgnoreCase)
+                .ThenBy(node =>
+                    node.NativeId,
+                    StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+        _activeSearchMatchIndex =
+            string.IsNullOrWhiteSpace(
+                previousActiveId)
+                ? (
+                    _searchMatches.Count > 0
+                        ? 0
+                        : -1
+                )
+                : _searchMatches.FindIndex(node =>
+                    node.Id.Equals(
+                        previousActiveId,
+                        StringComparison.OrdinalIgnoreCase));
+
+        if (_activeSearchMatchIndex < 0 &&
+            _searchMatches.Count > 0)
+        {
+            _activeSearchMatchIndex = 0;
+        }
+
+        UpdateSearchControls();
+    }
+
+    private void UpdateSearchControls()
+    {
+        var hasSearch =
+            !string.IsNullOrWhiteSpace(
+                _searchText);
+
+        var hasMatches =
+            _searchMatches.Count > 0;
+
+        TopologyPreviousMatchButton.IsEnabled =
+            hasMatches;
+
+        TopologyNextMatchButton.IsEnabled =
+            hasMatches;
+
+        TopologyClearSearchButton.IsEnabled =
+            hasSearch;
+
+        TopologySearchStatusText.Text =
+            !hasSearch
+                ? "Search current graph"
+                : !hasMatches
+                    ? "No matches"
+                    : $"{_activeSearchMatchIndex + 1} " +
+                      $"of {_searchMatches.Count}";
+    }
+
+    private void FocusActiveSearchMatch()
+    {
+        if (_activeSearchMatchIndex < 0 ||
+            _activeSearchMatchIndex >=
+                _searchMatches.Count)
+        {
+            return;
+        }
+
+        var activeNode =
+            _searchMatches[
+                _activeSearchMatchIndex];
+
+        if (!_nodePositions.TryGetValue(
+                activeNode.Id,
+                out var position))
+        {
+            return;
+        }
+
+        var nodeCenterX =
+            (
+                position.X +
+                80
+            ) *
+            _zoom;
+
+        var nodeCenterY =
+            (
+                position.Y +
+                35
+            ) *
+            _zoom;
+
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                var viewportWidth =
+                    Math.Max(
+                        1,
+                        TopologyScrollViewer.Bounds.Width);
+
+                var viewportHeight =
+                    Math.Max(
+                        1,
+                        TopologyScrollViewer.Bounds.Height);
+
+                TopologyScrollViewer.Offset =
+                    new Vector(
+                        Math.Max(
+                            0,
+                            nodeCenterX -
+                            viewportWidth / 2),
+                        Math.Max(
+                            0,
+                            nodeCenterY -
+                            viewportHeight / 2));
+            },
+            DispatcherPriority.Loaded);
+    }
+
+    private bool IsSearchMatch(
+        TopologyNode node)
+    {
+        return _searchMatches.Any(match =>
+            match.Id.Equals(
+                node.Id,
+                StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsActiveSearchMatch(
+        TopologyNode node)
+    {
+        return _activeSearchMatchIndex >= 0 &&
+               _activeSearchMatchIndex <
+                   _searchMatches.Count &&
+               _searchMatches[
+                       _activeSearchMatchIndex]
+                   .Id.Equals(
+                       node.Id,
+                       StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool MatchesTopologySearch(
+        TopologyNode node,
+        string search)
+    {
+        return ContainsSearch(
+                   node.DisplayName,
+                   search) ||
+               ContainsSearch(
+                   node.NativeId,
+                   search) ||
+               ContainsSearch(
+                   node.ResourceType,
+                   search) ||
+               ContainsSearch(
+                   node.DomainId,
+                   search) ||
+               ContainsSearch(
+                   node.ProviderId,
+                   search) ||
+               ContainsSearch(
+                   node.AccountId,
+                   search) ||
+               ContainsSearch(
+                   node.State,
+                   search) ||
+               ContainsSearch(
+                   node.Location,
+                   search) ||
+               ContainsSearch(
+                   node.AvailabilityZone,
+                   search) ||
+               ContainsSearch(
+                   node.Arn,
+                   search) ||
+               node.Properties.Any(item =>
+                   ContainsSearch(
+                       item.Key,
+                       search) ||
+                   ContainsSearch(
+                       item.Value,
+                       search)) ||
+               node.Tags.Any(item =>
+                   ContainsSearch(
+                       item.Key,
+                       search) ||
+                   ContainsSearch(
+                       item.Value,
+                       search));
+    }
+
+    private static bool ContainsSearch(
+        string? value,
+        string search)
+    {
+        return value?.Contains(
+                   search,
+                   StringComparison.OrdinalIgnoreCase)
+               == true;
+    }
+
     private void RenderNodes(
         TopologyView topology,
         IReadOnlyDictionary<string, Point> positions)
@@ -1055,6 +1391,22 @@ public partial class TopologyCanvas : UserControl
                     TextWrapping =
                         TextWrapping.Wrap
                 });
+
+            if (IsSearchMatch(node))
+            {
+                border.BorderBrush =
+                    new SolidColorBrush(
+                        Color.Parse(
+                            IsActiveSearchMatch(node)
+                                ? "#FDE047"
+                                : "#38BDF8"));
+
+                border.BorderThickness =
+                    new Thickness(
+                        IsActiveSearchMatch(node)
+                            ? 4
+                            : 3);
+            }
 
             border.Child = panel;
 

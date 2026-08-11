@@ -9,7 +9,7 @@
         BorderThickness="1"
         CornerRadius="8">
 
-        <Grid RowDefinitions="Auto,Auto,*">
+        <Grid RowDefinitions="Auto,Auto,Auto,*">
 
             <Border
                 Grid.Row="0"
@@ -134,6 +134,75 @@
 
             <Border
                 Grid.Row="1"
+                Padding="10,7"
+                Background="#0B1728"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+                <Grid
+                    ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto"
+                    ColumnSpacing="8">
+
+                    <TextBlock
+                        Grid.Column="0"
+                        Text="Find"
+                        FontWeight="SemiBold"
+                        Foreground="#E2E8F0"
+                        VerticalAlignment="Center"/>
+
+                    <TextBox
+                        Grid.Column="1"
+                        Name="TopologySearchTextBox"
+                        Height="34"
+                        MinWidth="220"
+                        MaxWidth="420"
+                        Watermark="Search this topology..."/>
+
+                    <Button
+                        Grid.Column="2"
+                        Name="TopologyPreviousMatchButton"
+                        Content="← Previous"
+                        IsEnabled="False"
+                        Padding="10,5"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyPreviousMatchButton_OnClick"/>
+
+                    <Button
+                        Grid.Column="3"
+                        Name="TopologyNextMatchButton"
+                        Content="Next →"
+                        IsEnabled="False"
+                        Padding="10,5"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyNextMatchButton_OnClick"/>
+
+                    <TextBlock
+                        Grid.Column="4"
+                        Name="TopologySearchStatusText"
+                        Text="Search current graph"
+                        MinWidth="105"
+                        Foreground="#7F9AB8"
+                        VerticalAlignment="Center"/>
+
+                    <Button
+                        Grid.Column="5"
+                        Name="TopologyClearSearchButton"
+                        Content="Clear"
+                        IsEnabled="False"
+                        Padding="10,5"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyClearSearchButton_OnClick"/>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Row="2"
                 Padding="10,6"
                 Background="#0D1B30"
                 BorderBrush="#223149"
@@ -246,7 +315,7 @@
             </Border>
 
             <ScrollViewer
-                Grid.Row="2"
+                Grid.Row="3"
                 Name="TopologyScrollViewer"
                 Padding="12"
                 HorizontalScrollBarVisibility="Auto"
