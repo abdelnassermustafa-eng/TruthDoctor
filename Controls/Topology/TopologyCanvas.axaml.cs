@@ -7,6 +7,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
 using TruthDoctor.Graph;
 using TruthDoctor.Services.Visuals;
 
@@ -28,6 +29,10 @@ public partial class TopologyCanvas : UserControl
 
     private double _zoom = 1.00;
 
+    private bool _isPanning;
+    private Point _panStart;
+    private Vector _panStartOffset;
+
     public event Action<TopologyNode>? NodeInvoked;
 
     public event Action? BackRequested;
@@ -39,6 +44,21 @@ public partial class TopologyCanvas : UserControl
     public TopologyCanvas()
     {
         InitializeComponent();
+
+        TopologySurface.PointerWheelChanged +=
+            TopologySurface_OnPointerWheelChanged;
+
+        TopologySurface.PointerPressed +=
+            TopologySurface_OnPointerPressed;
+
+        TopologySurface.PointerMoved +=
+            TopologySurface_OnPointerMoved;
+
+        TopologySurface.PointerReleased +=
+            TopologySurface_OnPointerReleased;
+
+        TopologySurface.PointerCaptureLost +=
+            TopologySurface_OnPointerCaptureLost;
 
         ApplyZoom();
     }
@@ -87,6 +107,175 @@ public partial class TopologyCanvas : UserControl
 
         SetZoom(
             fitZoom);
+    }
+
+    private void TopologySurface_OnPointerWheelChanged(
+        object? sender,
+        PointerWheelEventArgs eventArgs)
+    {
+        if (Math.Abs(eventArgs.Delta.Y) < 0.01)
+        {
+            return;
+        }
+
+        var pointerPosition =
+            eventArgs.GetPosition(
+                TopologyScrollViewer);
+
+        var previousZoom =
+            _zoom;
+
+        SetZoom(
+            _zoom +
+            (
+                eventArgs.Delta.Y > 0
+                    ? ZoomStep
+                    : -ZoomStep
+            ));
+
+        if (Math.Abs(_zoom - previousZoom) < 0.001)
+        {
+            eventArgs.Handled = true;
+            return;
+        }
+
+        var previousOffset =
+            TopologyScrollViewer.Offset;
+
+        var zoomRatio =
+            _zoom / previousZoom;
+
+        var targetOffsetX =
+            (
+                previousOffset.X +
+                pointerPosition.X
+            ) *
+            zoomRatio -
+            pointerPosition.X;
+
+        var targetOffsetY =
+            (
+                previousOffset.Y +
+                pointerPosition.Y
+            ) *
+            zoomRatio -
+            pointerPosition.Y;
+
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                TopologyScrollViewer.Offset =
+                    new Vector(
+                        Math.Max(
+                            0,
+                            targetOffsetX),
+                        Math.Max(
+                            0,
+                            targetOffsetY));
+            });
+
+        eventArgs.Handled = true;
+    }
+
+    private void TopologySurface_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs eventArgs)
+    {
+        var pointerPoint =
+            eventArgs.GetCurrentPoint(
+                TopologySurface);
+
+        if (!pointerPoint.Properties
+                .IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        _isPanning = true;
+
+        _panStart =
+            eventArgs.GetPosition(
+                TopologyScrollViewer);
+
+        _panStartOffset =
+            TopologyScrollViewer.Offset;
+
+        eventArgs.Pointer.Capture(
+            TopologySurface);
+
+        TopologySurface.Cursor =
+            new Cursor(
+                StandardCursorType.SizeAll);
+
+        eventArgs.Handled = true;
+    }
+
+    private void TopologySurface_OnPointerMoved(
+        object? sender,
+        PointerEventArgs eventArgs)
+    {
+        if (!_isPanning)
+        {
+            return;
+        }
+
+        var currentPosition =
+            eventArgs.GetPosition(
+                TopologyScrollViewer);
+
+        var deltaX =
+            currentPosition.X -
+            _panStart.X;
+
+        var deltaY =
+            currentPosition.Y -
+            _panStart.Y;
+
+        TopologyScrollViewer.Offset =
+            new Vector(
+                Math.Max(
+                    0,
+                    _panStartOffset.X -
+                    deltaX),
+                Math.Max(
+                    0,
+                    _panStartOffset.Y -
+                    deltaY));
+
+        eventArgs.Handled = true;
+    }
+
+    private void TopologySurface_OnPointerReleased(
+        object? sender,
+        PointerReleasedEventArgs eventArgs)
+    {
+        EndPanning(
+            eventArgs.Pointer);
+
+        eventArgs.Handled = true;
+    }
+
+    private void TopologySurface_OnPointerCaptureLost(
+        object? sender,
+        PointerCaptureLostEventArgs eventArgs)
+    {
+        _isPanning = false;
+        TopologySurface.Cursor = null;
+    }
+
+    private void EndPanning(
+        IPointer pointer)
+    {
+        if (!_isPanning)
+        {
+            return;
+        }
+
+        _isPanning = false;
+
+        pointer.Capture(null);
+
+        TopologySurface.Cursor = null;
     }
 
     private void SetZoom(
