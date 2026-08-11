@@ -29,6 +29,9 @@ public partial class TopologyCanvas : UserControl
 
     private double _zoom = 1.00;
 
+    private TopologyView _currentTopology =
+        new();
+
     private bool _isPanning;
     private Point _panStart;
     private Vector _panStartOffset;
@@ -360,24 +363,158 @@ public partial class TopologyCanvas : UserControl
     public void Render(
         TopologyView topology)
     {
+        ArgumentNullException.ThrowIfNull(topology);
+
+        _currentTopology =
+            topology;
+
+        RenderCurrentTopology();
+    }
+
+    private void RenderCurrentTopology()
+    {
         RootCanvas.Children.Clear();
+
+        var topology =
+            _currentTopology;
 
         if (topology.Nodes.Count == 0)
         {
+            RelationshipCountText.Text =
+                "0/0 edges";
+
             RenderEmpty();
             return;
         }
+
+        var visibleEdges =
+            topology.Edges
+                .Where(edge =>
+                    IsRelationshipVisible(
+                        edge.Kind))
+                .ToList();
+
+        var visibleTopology =
+            new TopologyView
+            {
+                SelectedResourceId =
+                    topology.SelectedResourceId,
+
+                Nodes =
+                    topology.Nodes,
+
+                Edges =
+                    visibleEdges
+            };
+
+        RelationshipCountText.Text =
+            $"{visibleEdges.Count}/" +
+            $"{topology.Edges.Count} edges";
 
         var positions =
             LayoutNodes(topology);
 
         RenderEdges(
-            topology,
+            visibleTopology,
             positions);
 
         RenderNodes(
             topology,
             positions);
+    }
+
+    private bool IsRelationshipVisible(
+        RelationshipKind kind)
+    {
+        return kind switch
+        {
+            RelationshipKind.Contains or
+            RelationshipKind.MemberOf =>
+                ContainmentFilter.IsChecked == true,
+
+            RelationshipKind.AttachedTo or
+            RelationshipKind.HostedOn =>
+                PlacementFilter.IsChecked == true,
+
+            RelationshipKind.DependsOn or
+            RelationshipKind.Uses =>
+                DependencyFilter.IsChecked == true,
+
+            RelationshipKind.ConnectedTo or
+            RelationshipKind.RoutesThrough =>
+                ConnectivityFilter.IsChecked == true,
+
+            RelationshipKind.SecuredBy =>
+                SecurityFilter.IsChecked == true,
+
+            RelationshipKind.Serves or
+            RelationshipKind.Targets =>
+                TrafficFilter.IsChecked == true,
+
+            RelationshipKind.AssociatedWith =>
+                AssociationFilter.IsChecked == true,
+
+            _ =>
+                OtherFilter.IsChecked == true
+        };
+    }
+
+    private IReadOnlyList<CheckBox>
+        RelationshipFilters =>
+        [
+            ContainmentFilter,
+            PlacementFilter,
+            DependencyFilter,
+            ConnectivityFilter,
+            SecurityFilter,
+            TrafficFilter,
+            AssociationFilter,
+            OtherFilter
+        ];
+
+    private void AllRelationshipFilter_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        SetAllRelationshipFilters(
+            AllRelationshipFilter.IsChecked == true);
+
+        RenderCurrentTopology();
+    }
+
+    private void RelationshipFilter_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        AllRelationshipFilter.IsChecked =
+            RelationshipFilters.All(
+                filter =>
+                    filter.IsChecked == true);
+
+        RenderCurrentTopology();
+    }
+
+    private void ResetRelationshipFilters_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        AllRelationshipFilter.IsChecked =
+            true;
+
+        SetAllRelationshipFilters(true);
+
+        RenderCurrentTopology();
+    }
+
+    private void SetAllRelationshipFilters(
+        bool isEnabled)
+    {
+        foreach (var filter in
+                 RelationshipFilters)
+        {
+            filter.IsChecked =
+                isEnabled;
+        }
     }
 
     private Dictionary<string, Point> LayoutNodes(

@@ -9,7 +9,7 @@
         BorderThickness="1"
         CornerRadius="8">
 
-        <Grid RowDefinitions="Auto,*">
+        <Grid RowDefinitions="Auto,Auto,*">
 
             <Border
                 Grid.Row="0"
@@ -106,8 +106,121 @@
                 </Grid>
             </Border>
 
-            <ScrollViewer
+            <Border
                 Grid.Row="1"
+                Padding="10,6"
+                Background="#0D1B30"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+                <Grid
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="5">
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Orientation="Horizontal"
+                        Spacing="13"
+                        VerticalAlignment="Center">
+
+                        <TextBlock
+                            Text="Relationships"
+                            FontWeight="SemiBold"
+                            Foreground="#E2E8F0"
+                            VerticalAlignment="Center"/>
+
+                        <CheckBox
+                            Name="AllRelationshipFilter"
+                            Content="All"
+                            IsChecked="True"
+                            Foreground="#CBD5E1"
+                            Click="AllRelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Name="ContainmentFilter"
+                            Content="Containment"
+                            IsChecked="True"
+                            Foreground="#A78BFA"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Name="PlacementFilter"
+                            Content="Placement"
+                            IsChecked="True"
+                            Foreground="#60A5FA"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Name="DependencyFilter"
+                            Content="Dependency"
+                            IsChecked="True"
+                            Foreground="#FBBF24"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Name="ConnectivityFilter"
+                            Content="Connectivity"
+                            IsChecked="True"
+                            Foreground="#22D3EE"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Name="SecurityFilter"
+                            Content="Security"
+                            IsChecked="True"
+                            Foreground="#FB7185"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Name="TrafficFilter"
+                            Content="Traffic"
+                            IsChecked="True"
+                            Foreground="#34D399"
+                            Click="RelationshipFilter_OnClick"/>
+                    </StackPanel>
+
+                    <Grid
+                        Grid.Row="1"
+                        ColumnDefinitions="Auto,Auto,Auto,*,Auto"
+                        ColumnSpacing="13">
+
+                        <CheckBox
+                            Grid.Column="0"
+                            Name="AssociationFilter"
+                            Content="Association"
+                            IsChecked="True"
+                            Foreground="#C084FC"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <CheckBox
+                            Grid.Column="1"
+                            Name="OtherFilter"
+                            Content="Other"
+                            IsChecked="True"
+                            Foreground="#94A3B8"
+                            Click="RelationshipFilter_OnClick"/>
+
+                        <TextBlock
+                            Grid.Column="2"
+                            Name="RelationshipCountText"
+                            Text="0/0 edges"
+                            Foreground="#7F9AB8"
+                            VerticalAlignment="Center"/>
+
+                        <Button
+                            Grid.Column="4"
+                            Content="Reset"
+                            Padding="10,4"
+                            Background="#15263D"
+                            Foreground="#E2E8F0"
+                            BorderBrush="#334A68"
+                            Click="ResetRelationshipFilters_OnClick"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <ScrollViewer
+                Grid.Row="2"
                 Name="TopologyScrollViewer"
                 Padding="12"
                 HorizontalScrollBarVisibility="Auto"
