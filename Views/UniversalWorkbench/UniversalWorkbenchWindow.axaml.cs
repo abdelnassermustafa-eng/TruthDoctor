@@ -119,6 +119,18 @@ public partial class UniversalWorkbenchWindow : Window
             }
         };
 
+        TopologyWorkspace.PathRequested +=
+            (sourceId, targetId) =>
+            {
+                var result =
+                    _graphContext.FindShortestPath(
+                        sourceId,
+                        targetId,
+                        includeReverseRelationships: true);
+
+                TopologyWorkspace.ShowPath(result);
+            };
+
         TopologyWorkspace.BackRequested += () =>
         {
             if (_topology.GoBack())

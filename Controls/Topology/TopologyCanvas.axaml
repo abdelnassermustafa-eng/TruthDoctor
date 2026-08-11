@@ -9,7 +9,7 @@
         BorderThickness="1"
         CornerRadius="8">
 
-        <Grid RowDefinitions="Auto,Auto,Auto,*">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
 
             <Border
                 Grid.Row="0"
@@ -203,6 +203,55 @@
 
             <Border
                 Grid.Row="2"
+                Padding="10,7"
+                Background="#0B1728"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+                <Grid
+                    ColumnDefinitions="Auto,Auto,*,Auto"
+                    ColumnSpacing="8">
+
+                    <TextBlock
+                        Grid.Column="0"
+                        Text="Path"
+                        FontWeight="SemiBold"
+                        Foreground="#E2E8F0"
+                        VerticalAlignment="Center"/>
+
+                    <Button
+                        Grid.Column="1"
+                        Name="TopologyStartPathButton"
+                        Content="Start path"
+                        Padding="12,5"
+                        Background="#1D4ED8"
+                        Foreground="White"
+                        BorderBrush="#3B82F6"
+                        Click="TopologyStartPathButton_OnClick"/>
+
+                    <TextBlock
+                        Grid.Column="2"
+                        Name="TopologyPathStatusText"
+                        Text="Center a source resource, then start a path"
+                        Foreground="#7F9AB8"
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Center"/>
+
+                    <Button
+                        Grid.Column="3"
+                        Name="TopologyClearPathButton"
+                        Content="Clear path"
+                        IsEnabled="False"
+                        Padding="10,5"
+                        Background="#15263D"
+                        Foreground="#E2E8F0"
+                        BorderBrush="#334A68"
+                        Click="TopologyClearPathButton_OnClick"/>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Row="3"
                 Padding="10,6"
                 Background="#0D1B30"
                 BorderBrush="#223149"
@@ -315,7 +364,7 @@
             </Border>
 
             <ScrollViewer
-                Grid.Row="3"
+                Grid.Row="4"
                 Name="TopologyScrollViewer"
                 Padding="12"
                 HorizontalScrollBarVisibility="Auto"

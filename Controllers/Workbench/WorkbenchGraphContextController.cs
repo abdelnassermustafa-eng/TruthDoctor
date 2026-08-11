@@ -36,6 +36,34 @@ public sealed class WorkbenchGraphContextController
         Current?.Impact.TotalAffectedCount ?? 0;
 
 
+    public GraphPathResult FindShortestPath(
+        string sourceId,
+        string targetId,
+        bool includeReverseRelationships = true)
+    {
+        var graphIndex =
+            _state.InfrastructureGraphIndex;
+
+        if (graphIndex is null)
+        {
+            return new GraphPathResult
+            {
+                SourceId = sourceId,
+                TargetId = targetId,
+                Found = false
+            };
+        }
+
+        var analyzer =
+            new InfrastructurePathAnalyzer(
+                graphIndex);
+
+        return analyzer.FindShortestPath(
+            sourceId,
+            targetId,
+            includeReverseRelationships);
+    }
+
     public TopologyView BuildTopology(
         int depth = 1)
     {

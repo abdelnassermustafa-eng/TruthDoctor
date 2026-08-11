@@ -49,6 +49,12 @@ public partial class TopologyCanvas : UserControl
 
     private bool _isRelationshipFocusEnabled;
 
+    private bool _isPathSelectionMode;
+
+    private string _pathSourceId = "";
+
+    private GraphPathResult? _activePath;
+
     public event Action<TopologyNode>? NodeInvoked;
 
     public event Action? BackRequested;
@@ -58,6 +64,8 @@ public partial class TopologyCanvas : UserControl
     public event Action? HomeRequested;
 
     public event Action<int>? DepthChanged;
+
+    public event Action<string, string>? PathRequested;
 
     public TopologyCanvas()
     {
@@ -400,6 +408,136 @@ public partial class TopologyCanvas : UserControl
             depth);
     }
 
+
+    private void TopologyStartPathButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        var sourceId =
+            _currentTopology.SelectedResourceId;
+
+        if (string.IsNullOrWhiteSpace(sourceId))
+        {
+            TopologyPathStatusText.Text =
+                "No source resource is selected.";
+
+            return;
+        }
+
+        _isRelationshipFocusEnabled = false;
+        _activePath = null;
+        _isPathSelectionMode = true;
+        _pathSourceId = sourceId;
+
+        var source =
+            _currentTopology.Nodes.FirstOrDefault(node =>
+                node.Id.Equals(
+                    sourceId,
+                    StringComparison.OrdinalIgnoreCase));
+
+        TopologyPathStatusText.Text =
+            $"Source: " +
+            $"{source?.DisplayName ?? sourceId} · " +
+            "click a destination resource";
+
+        TopologyStartPathButton.Content =
+            "Selecting…";
+
+        TopologyClearPathButton.IsEnabled =
+            true;
+
+        RenderCurrentTopology();
+    }
+
+    private void TopologyClearPathButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        ClearPath();
+    }
+
+    public void ShowPath(
+        GraphPathResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        _isPathSelectionMode = false;
+        _pathSourceId = "";
+        _activePath = result;
+
+        TopologyStartPathButton.Content =
+            "Start path";
+
+        TopologyClearPathButton.IsEnabled =
+            true;
+
+        if (!result.Found)
+        {
+            TopologyPathStatusText.Text =
+                "No path exists between the selected resources.";
+
+            RenderCurrentTopology();
+            return;
+        }
+
+        var route =
+            string.Join(
+                "  →  ",
+                result.Nodes.Select(node =>
+                    string.IsNullOrWhiteSpace(
+                        node.DisplayName)
+                        ? node.Id
+                        : node.DisplayName));
+
+        var projectedNodeIds =
+            _currentTopology.Nodes
+                .Select(node => node.Id)
+                .ToHashSet(
+                    StringComparer.OrdinalIgnoreCase);
+
+        var visiblePathNodeCount =
+            result.Nodes.Count(node =>
+                projectedNodeIds.Contains(node.Id));
+
+        var projectionStatus =
+            visiblePathNodeCount ==
+            result.Nodes.Count
+                ? ""
+                : $" · {visiblePathNodeCount}/" +
+                  $"{result.Nodes.Count} path nodes visible; " +
+                  "increase depth to display the full route";
+
+        TopologyPathStatusText.Text =
+            $"{result.HopCount} " +
+            (
+                result.HopCount == 1
+                    ? "hop"
+                    : "hops"
+            ) +
+            $" · {route}" +
+            projectionStatus;
+
+        RenderCurrentTopology();
+    }
+
+    private void ClearPath()
+    {
+        _isPathSelectionMode = false;
+        _pathSourceId = "";
+        _activePath = null;
+
+        TopologyStartPathButton.Content =
+            "Start path";
+
+        TopologyClearPathButton.IsEnabled =
+            false;
+
+        TopologyPathStatusText.Text =
+            "Center a source resource, then start a path";
+
+        RenderCurrentTopology();
+    }
+
     public void Render(
         TopologyView topology)
     {
@@ -407,6 +545,11 @@ public partial class TopologyCanvas : UserControl
 
         _currentTopology =
             topology;
+
+        TopologyStartPathButton.IsEnabled =
+            topology.Nodes.Count > 0 &&
+            !string.IsNullOrWhiteSpace(
+                topology.SelectedResourceId);
 
         RefreshSearchMatches(
             preserveActiveMatch: true);
@@ -434,7 +577,8 @@ public partial class TopologyCanvas : UserControl
             topology.Edges
                 .Where(edge =>
                     IsRelationshipVisible(
-                        edge.Kind))
+                        edge.Kind) ||
+                    IsActivePathEdge(edge))
                 .ToList();
 
         var visibleTopology =
@@ -552,6 +696,19 @@ public partial class TopologyCanvas : UserControl
 
         _isRelationshipFocusEnabled = false;
 
+        _isPathSelectionMode = false;
+        _pathSourceId = "";
+        _activePath = null;
+
+        TopologyStartPathButton.Content =
+            "Start path";
+
+        TopologyClearPathButton.IsEnabled =
+            false;
+
+        TopologyPathStatusText.Text =
+            "Center a source resource, then start a path";
+
         RenderCurrentTopology();
     }
 
@@ -635,14 +792,25 @@ public partial class TopologyCanvas : UserControl
             var edge =
                 topology.Edges[edgeIndex];
 
+            var isPathEdge =
+                IsActivePathEdge(edge);
+
             var isFocusedEdge =
                 IsFocusedRelationshipEdge(edge);
 
             var edgeOpacity =
-                HasRelationshipFocus &&
-                !isFocusedEdge
-                    ? 0.04
-                    : 1.00;
+                HasActivePath
+                    ? (
+                        isPathEdge
+                            ? 1.00
+                            : 0.025
+                    )
+                    : (
+                        HasRelationshipFocus &&
+                        !isFocusedEdge
+                            ? 0.04
+                            : 1.00
+                    );
 
             if (!positions.TryGetValue(
                     edge.SourceId,
@@ -694,9 +862,11 @@ public partial class TopologyCanvas : UserControl
                     EndPoint = endPoint,
                     Stroke = edgeBrush,
                     StrokeThickness =
-                        isFocusedEdge
-                            ? 5
-                            : 2
+                        isPathEdge
+                            ? 6
+                            : isFocusedEdge
+                                ? 5
+                                : 2
                 };
 
             RootCanvas.Children.Add(line);
@@ -711,7 +881,8 @@ public partial class TopologyCanvas : UserControl
                 edgeIndex,
                 startPoint,
                 endPoint,
-                edgeBrush);
+                edgeBrush,
+                edgeOpacity);
         }
     }
 
@@ -798,7 +969,8 @@ public partial class TopologyCanvas : UserControl
         int edgeIndex,
         Point startPoint,
         Point endPoint,
-        IBrush edgeBrush)
+        IBrush edgeBrush,
+        double edgeOpacity)
     {
         var labelFraction =
             edgeIndex % 3 switch
@@ -881,6 +1053,9 @@ public partial class TopologyCanvas : UserControl
 
                 BorderThickness =
                     new Thickness(1),
+
+                Opacity =
+                    edgeOpacity,
 
                 Child =
                     new TextBlock
@@ -1314,7 +1489,80 @@ public partial class TopologyCanvas : UserControl
     }
 
 
+
+    private bool HasActivePath =>
+        _activePath?.Found == true &&
+        _activePath.Nodes.Count > 0;
+
+    private bool IsActivePathNode(
+        TopologyNode node)
+    {
+        return HasActivePath &&
+               _activePath!.Nodes.Any(pathNode =>
+                   pathNode.Id.Equals(
+                       node.Id,
+                       StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsPathStartNode(
+        TopologyNode node)
+    {
+        return HasActivePath &&
+               node.Id.Equals(
+                   _activePath!.SourceId,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsPathEndNode(
+        TopologyNode node)
+    {
+        return HasActivePath &&
+               node.Id.Equals(
+                   _activePath!.TargetId,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private int PathNodePosition(
+        TopologyNode node)
+    {
+        if (!HasActivePath)
+        {
+            return -1;
+        }
+
+        for (var index = 0;
+             index < _activePath!.Nodes.Count;
+             index++)
+        {
+            if (_activePath.Nodes[index].Id.Equals(
+                    node.Id,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private bool IsActivePathEdge(
+        TopologyEdge edge)
+    {
+        return HasActivePath &&
+               _activePath!.Edges.Any(pathEdge =>
+                   pathEdge.SourceId.Equals(
+                       edge.SourceId,
+                       StringComparison.OrdinalIgnoreCase) &&
+                   pathEdge.TargetId.Equals(
+                       edge.TargetId,
+                       StringComparison.OrdinalIgnoreCase) &&
+                   pathEdge.Relationship.Equals(
+                       edge.Relationship,
+                       StringComparison.OrdinalIgnoreCase));
+    }
+
     private bool HasRelationshipFocus =>
+        !HasActivePath &&
         _isRelationshipFocusEnabled &&
         !string.IsNullOrWhiteSpace(
             _currentTopology.SelectedResourceId);
@@ -1369,6 +1617,11 @@ public partial class TopologyCanvas : UserControl
     private bool ShouldKeepNodeVivid(
         TopologyNode node)
     {
+        if (HasActivePath)
+        {
+            return IsActivePathNode(node);
+        }
+
         if (!HasRelationshipFocus)
         {
             return true;
@@ -1482,7 +1735,28 @@ public partial class TopologyCanvas : UserControl
                     ? 1.00
                     : 0.08;
 
-            if (HasRelationshipFocus)
+            if (HasActivePath &&
+                IsActivePathNode(node))
+            {
+                var pathColor =
+                    IsPathStartNode(node)
+                        ? "#34D399"
+                        : IsPathEndNode(node)
+                            ? "#F472B6"
+                            : "#FBBF24";
+
+                border.BorderBrush =
+                    new SolidColorBrush(
+                        Color.Parse(pathColor));
+
+                border.BorderThickness =
+                    new Thickness(
+                        IsPathStartNode(node) ||
+                        IsPathEndNode(node)
+                            ? 5
+                            : 4);
+            }
+            else if (HasRelationshipFocus)
             {
                 if (node.Id.Equals(
                         FocusedNodeId,
@@ -1506,7 +1780,8 @@ public partial class TopologyCanvas : UserControl
                 }
             }
 
-            if (IsSearchMatch(node) &&
+            if (!HasActivePath &&
+                IsSearchMatch(node) &&
                 !node.Id.Equals(
                     FocusedNodeId,
                     StringComparison.OrdinalIgnoreCase))
@@ -1525,7 +1800,40 @@ public partial class TopologyCanvas : UserControl
                             : 3);
             }
 
-            if (HasRelationshipFocus &&
+            if (HasActivePath &&
+                IsActivePathNode(node))
+            {
+                var pathPosition =
+                    PathNodePosition(node);
+
+                var pathLabel =
+                    IsPathStartNode(node)
+                        ? "●  START"
+                        : IsPathEndNode(node)
+                            ? "●  END"
+                            : $"●  PATH {pathPosition + 1}";
+
+                var pathColor =
+                    IsPathStartNode(node)
+                        ? "#34D399"
+                        : IsPathEndNode(node)
+                            ? "#F472B6"
+                            : "#FBBF24";
+
+                panel.Children.Insert(
+                    0,
+                    new TextBlock
+                    {
+                        Text = pathLabel,
+                        FontSize = 11,
+                        FontWeight =
+                            FontWeight.Bold,
+                        Foreground =
+                            new SolidColorBrush(
+                                Color.Parse(pathColor))
+                    });
+            }
+            else if (HasRelationshipFocus &&
                 node.Id.Equals(
                     FocusedNodeId,
                     StringComparison.OrdinalIgnoreCase))
@@ -1572,9 +1880,39 @@ public partial class TopologyCanvas : UserControl
             border.PointerPressed +=
                 (_, eventArgs) =>
                 {
+                    if (_isPathSelectionMode)
+                    {
+                        if (node.Id.Equals(
+                                _pathSourceId,
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            TopologyPathStatusText.Text =
+                                "Choose a destination different " +
+                                "from the source.";
+                        }
+                        else
+                        {
+                            PathRequested?.Invoke(
+                                _pathSourceId,
+                                node.Id);
+                        }
+
+                        eventArgs.Handled = true;
+                        return;
+                    }
+
+                    _activePath = null;
+                    TopologyClearPathButton.IsEnabled = false;
+
+                    TopologyPathStatusText.Text =
+                        "Center a source resource, " +
+                        "then start a path";
+
                     _isRelationshipFocusEnabled = true;
+
                     NodeInvoked?.Invoke(node);
                     RenderCurrentTopology();
+
                     eventArgs.Handled = true;
                 };
 
