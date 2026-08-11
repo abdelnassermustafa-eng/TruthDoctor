@@ -44,6 +44,8 @@ public partial class TopologyCanvas : UserControl
 
     public event Action? HomeRequested;
 
+    public event Action<int>? DepthChanged;
+
     public TopologyCanvas()
     {
         InitializeComponent();
@@ -360,6 +362,24 @@ public partial class TopologyCanvas : UserControl
         HomeRequested?.Invoke();
     }
 
+    private void TopologyDepthComboBox_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs eventArgs)
+    {
+        if (sender is not ComboBox comboBox ||
+            comboBox.SelectedItem is not
+                ComboBoxItem item ||
+            !int.TryParse(
+                item.Tag?.ToString(),
+                out var depth))
+        {
+            return;
+        }
+
+        DepthChanged?.Invoke(
+            depth);
+    }
+
     public void Render(
         TopologyView topology)
     {
@@ -381,7 +401,7 @@ public partial class TopologyCanvas : UserControl
         if (topology.Nodes.Count == 0)
         {
             RelationshipCountText.Text =
-                "0/0 edges";
+                "0 nodes · 0/0 edges";
 
             RenderEmpty();
             return;
@@ -408,6 +428,7 @@ public partial class TopologyCanvas : UserControl
             };
 
         RelationshipCountText.Text =
+            $"{topology.Nodes.Count} nodes · " +
             $"{visibleEdges.Count}/" +
             $"{topology.Edges.Count} edges";
 

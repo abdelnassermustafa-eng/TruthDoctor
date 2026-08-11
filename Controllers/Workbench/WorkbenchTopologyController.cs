@@ -20,6 +20,8 @@ public sealed class WorkbenchTopologyController
 
     private InfrastructureResource? _home;
 
+    private int _depth = 2;
+
     public WorkbenchTopologyController(
         WorkbenchGraphContextController graph,
         WorkbenchSelectionController selection,
@@ -35,7 +37,29 @@ public sealed class WorkbenchTopologyController
     }
 
     public TopologyView Current =>
-        _graph.BuildTopology(2);
+        _graph.BuildTopology(_depth);
+
+    public int Depth =>
+        _depth;
+
+    public bool SetDepth(
+        int depth)
+    {
+        if (depth is < 1 or > 3)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(depth));
+        }
+
+        if (_depth == depth)
+        {
+            return false;
+        }
+
+        _depth = depth;
+
+        return true;
+    }
 
     public bool CanGoBack =>
         _back.Count > 0;

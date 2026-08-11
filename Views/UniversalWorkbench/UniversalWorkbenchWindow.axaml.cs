@@ -143,6 +143,14 @@ public partial class UniversalWorkbenchWindow : Window
             }
         };
 
+        TopologyWorkspace.DepthChanged += depth =>
+        {
+            if (_topology.SetDepth(depth))
+            {
+                RenderTopologySelection();
+            }
+        };
+
         _clockTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
