@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using TruthDoctor.Graph;
 using TruthDoctor.Services.Visuals;
@@ -140,6 +144,475 @@ public partial class TopologyCanvas : UserControl
 
         SetZoom(
             fitZoom);
+    }
+
+    private async void TopologyExportPngMenuItem_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        await ExportPngAsync();
+    }
+
+    private async void TopologyExportJsonMenuItem_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        await ExportJsonAsync();
+    }
+
+    private async Task ExportPngAsync()
+    {
+        if (_currentTopology.Nodes.Count == 0)
+        {
+            SetExportStatus(
+                "Nothing to export.",
+                isError: true);
+
+            return;
+        }
+
+        var file =
+            await RequestExportFileAsync(
+                "Save topology snapshot",
+                "png",
+                new FilePickerFileType(
+                    "PNG image")
+                {
+                    Patterns = ["*.png"],
+                    MimeTypes = ["image/png"],
+                    AppleUniformTypeIdentifiers =
+                        ["public.png"]
+                });
+
+        if (file is null)
+        {
+            SetExportStatus(
+                "PNG export cancelled.");
+
+            return;
+        }
+
+        TopologyExportButton.IsEnabled = false;
+
+        try
+        {
+            var previousTransform =
+                RootCanvas.RenderTransform;
+
+            try
+            {
+                RootCanvas.RenderTransform = null;
+
+                RootCanvas.Measure(
+                    new Size(
+                        CanvasWidth,
+                        CanvasHeight));
+
+                RootCanvas.Arrange(
+                    new Rect(
+                        0,
+                        0,
+                        CanvasWidth,
+                        CanvasHeight));
+
+                using var bitmap =
+                    new RenderTargetBitmap(
+                        new PixelSize(
+                            (int)CanvasWidth,
+                            (int)CanvasHeight),
+                        new Vector(96, 96));
+
+                bitmap.Render(
+                    RootCanvas);
+
+                await using var stream =
+                    await file.OpenWriteAsync();
+
+                bitmap.Save(stream);
+            }
+            finally
+            {
+                RootCanvas.RenderTransform =
+                    previousTransform;
+
+                ApplyZoom();
+            }
+
+            SetExportStatus(
+                $"Saved {file.Name}");
+        }
+        catch (Exception exception)
+        {
+            SetExportStatus(
+                $"PNG export failed: " +
+                $"{exception.Message}",
+                isError: true);
+        }
+        finally
+        {
+            TopologyExportButton.IsEnabled = true;
+        }
+    }
+
+    private async Task ExportJsonAsync()
+    {
+        if (_currentTopology.Nodes.Count == 0)
+        {
+            SetExportStatus(
+                "Nothing to export.",
+                isError: true);
+
+            return;
+        }
+
+        var file =
+            await RequestExportFileAsync(
+                "Save topology data",
+                "json",
+                new FilePickerFileType(
+                    "JSON document")
+                {
+                    Patterns = ["*.json"],
+                    MimeTypes =
+                        ["application/json"],
+                    AppleUniformTypeIdentifiers =
+                        ["public.json"]
+                });
+
+        if (file is null)
+        {
+            SetExportStatus(
+                "JSON export cancelled.");
+
+            return;
+        }
+
+        TopologyExportButton.IsEnabled = false;
+
+        try
+        {
+            var visibleEdges =
+                CurrentVisibleEdges();
+
+            var exportDocument =
+                new
+                {
+                    schema =
+                        "truthdoctor.topology.v1",
+
+                    exportedAtUtc =
+                        DateTimeOffset.UtcNow,
+
+                    projection =
+                        new
+                        {
+                            selectedResourceId =
+                                _currentTopology
+                                    .SelectedResourceId,
+
+                            depth =
+                                CurrentTopologyDepth(),
+
+                            zoom =
+                                _zoom,
+
+                            nodeCount =
+                                _currentTopology
+                                    .Nodes.Count,
+
+                            visibleEdgeCount =
+                                visibleEdges.Count,
+
+                            totalProjectedEdgeCount =
+                                _currentTopology
+                                    .Edges.Count,
+
+                            relationshipFilters =
+                                CurrentRelationshipFilters(),
+
+                            relationshipFocusEnabled =
+                                HasRelationshipFocus,
+
+                            focusedResourceId =
+                                HasRelationshipFocus
+                                    ? FocusedNodeId
+                                    : null
+                        },
+
+                    nodes =
+                        _currentTopology.Nodes
+                            .Select(node =>
+                                new
+                                {
+                                    node.Id,
+                                    node.ProviderId,
+                                    node.AccountId,
+                                    node.DomainId,
+                                    node.ResourceType,
+                                    node.DisplayName,
+                                    node.NativeId,
+                                    node.State,
+                                    node.Location,
+                                    node.AvailabilityZone,
+                                    node.Arn,
+                                    node.Properties,
+                                    node.Tags,
+                                    node.IsSelected,
+
+                                    isPathNode =
+                                        IsActivePathNode(
+                                            node),
+
+                                    pathRole =
+                                        PathRole(node)
+                                })
+                            .ToList(),
+
+                    relationships =
+                        visibleEdges
+                            .Select(edge =>
+                                new
+                                {
+                                    edge.SourceId,
+                                    edge.TargetId,
+                                    edge.Relationship,
+
+                                    kind =
+                                        edge.Kind.ToString(),
+
+                                    isPathEdge =
+                                        IsActivePathEdge(
+                                            edge),
+
+                                    isFocusedEdge =
+                                        IsFocusedRelationshipEdge(
+                                            edge)
+                                })
+                            .ToList(),
+
+                    activePath =
+                        BuildPathExport()
+                };
+
+            var bytes =
+                JsonSerializer.SerializeToUtf8Bytes(
+                    exportDocument,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
+
+            await using var stream =
+                await file.OpenWriteAsync();
+
+            await stream.WriteAsync(bytes);
+
+            SetExportStatus(
+                $"Saved {file.Name}");
+        }
+        catch (Exception exception)
+        {
+            SetExportStatus(
+                $"JSON export failed: " +
+                $"{exception.Message}",
+                isError: true);
+        }
+        finally
+        {
+            TopologyExportButton.IsEnabled = true;
+        }
+    }
+
+    private async Task<IStorageFile?>
+        RequestExportFileAsync(
+            string title,
+            string extension,
+            FilePickerFileType fileType)
+    {
+        var topLevel =
+            TopLevel.GetTopLevel(this);
+
+        if (topLevel is null ||
+            !topLevel.StorageProvider.CanSave)
+        {
+            SetExportStatus(
+                "Save-location selection is unavailable.",
+                isError: true);
+
+            return null;
+        }
+
+        try
+        {
+            return await topLevel
+                .StorageProvider
+                .SaveFilePickerAsync(
+                    new FilePickerSaveOptions
+                    {
+                        Title = title,
+
+                        SuggestedFileName =
+                            $"truthdoctor-topology-" +
+                            $"{DateTime.Now:yyyyMMdd-HHmmss}." +
+                            extension,
+
+                        DefaultExtension =
+                            extension,
+
+                        FileTypeChoices =
+                            [fileType]
+                    });
+        }
+        catch (Exception exception)
+        {
+            SetExportStatus(
+                $"Save dialog failed: " +
+                $"{exception.Message}",
+                isError: true);
+
+            return null;
+        }
+    }
+
+    private List<TopologyEdge>
+        CurrentVisibleEdges()
+    {
+        return _currentTopology.Edges
+            .Where(edge =>
+                IsRelationshipVisible(
+                    edge.Kind) ||
+                IsActivePathEdge(edge))
+            .ToList();
+    }
+
+    private int CurrentTopologyDepth()
+    {
+        if (TopologyDepthComboBox.SelectedItem is
+                ComboBoxItem item &&
+            int.TryParse(
+                item.Tag?.ToString(),
+                out var depth))
+        {
+            return depth;
+        }
+
+        return 1;
+    }
+
+    private object CurrentRelationshipFilters()
+    {
+        return new
+        {
+            all =
+                AllRelationshipFilter.IsChecked ==
+                true,
+
+            containment =
+                ContainmentFilter.IsChecked ==
+                true,
+
+            placement =
+                PlacementFilter.IsChecked ==
+                true,
+
+            dependency =
+                DependencyFilter.IsChecked ==
+                true,
+
+            connectivity =
+                ConnectivityFilter.IsChecked ==
+                true,
+
+            security =
+                SecurityFilter.IsChecked ==
+                true,
+
+            traffic =
+                TrafficFilter.IsChecked ==
+                true,
+
+            association =
+                AssociationFilter.IsChecked ==
+                true,
+
+            other =
+                OtherFilter.IsChecked ==
+                true
+        };
+    }
+
+    private object? BuildPathExport()
+    {
+        if (!HasActivePath)
+        {
+            return null;
+        }
+
+        return new
+        {
+            _activePath!.SourceId,
+            _activePath.TargetId,
+            _activePath.HopCount,
+
+            nodes =
+                _activePath.Nodes
+                    .Select(node =>
+                        new
+                        {
+                            node.Id,
+                            node.DisplayName,
+                            node.ResourceType
+                        })
+                    .ToList(),
+
+            relationships =
+                _activePath.Edges
+                    .Select(edge =>
+                        new
+                        {
+                            edge.SourceId,
+                            edge.TargetId,
+                            edge.Relationship
+                        })
+                    .ToList()
+        };
+    }
+
+    private string? PathRole(
+        TopologyNode node)
+    {
+        if (!HasActivePath ||
+            !IsActivePathNode(node))
+        {
+            return null;
+        }
+
+        if (IsPathStartNode(node))
+        {
+            return "start";
+        }
+
+        if (IsPathEndNode(node))
+        {
+            return "end";
+        }
+
+        return $"hop-{PathNodePosition(node)}";
+    }
+
+    private void SetExportStatus(
+        string message,
+        bool isError = false)
+    {
+        TopologyExportStatusText.Text =
+            message;
+
+        TopologyExportStatusText.Foreground =
+            new SolidColorBrush(
+                Color.Parse(
+                    isError
+                        ? "#FCA5A5"
+                        : "#86EFAC"));
     }
 
     private void TopologySurface_OnPointerWheelChanged(
