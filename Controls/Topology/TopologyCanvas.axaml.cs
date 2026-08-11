@@ -47,6 +47,8 @@ public partial class TopologyCanvas : UserControl
         new Dictionary<string, Point>(
             StringComparer.OrdinalIgnoreCase);
 
+    private bool _isRelationshipFocusEnabled;
+
     public event Action<TopologyNode>? NodeInvoked;
 
     public event Action? BackRequested;
@@ -548,6 +550,8 @@ public partial class TopologyCanvas : UserControl
 
         SetAllRelationshipFilters(true);
 
+        _isRelationshipFocusEnabled = false;
+
         RenderCurrentTopology();
     }
 
@@ -631,6 +635,15 @@ public partial class TopologyCanvas : UserControl
             var edge =
                 topology.Edges[edgeIndex];
 
+            var isFocusedEdge =
+                IsFocusedRelationshipEdge(edge);
+
+            var edgeOpacity =
+                HasRelationshipFocus &&
+                !isFocusedEdge
+                    ? 0.04
+                    : 1.00;
+
             if (!positions.TryGetValue(
                     edge.SourceId,
                     out var source))
@@ -671,7 +684,8 @@ public partial class TopologyCanvas : UserControl
 
             var edgeBrush =
                 new SolidColorBrush(
-                    edgeColor);
+                    edgeColor,
+                    edgeOpacity);
 
             var line =
                 new Line
@@ -679,7 +693,10 @@ public partial class TopologyCanvas : UserControl
                     StartPoint = startPoint,
                     EndPoint = endPoint,
                     Stroke = edgeBrush,
-                    StrokeThickness = 2
+                    StrokeThickness =
+                        isFocusedEdge
+                            ? 5
+                            : 2
                 };
 
             RootCanvas.Children.Add(line);
@@ -1296,6 +1313,74 @@ public partial class TopologyCanvas : UserControl
                == true;
     }
 
+
+    private bool HasRelationshipFocus =>
+        _isRelationshipFocusEnabled &&
+        !string.IsNullOrWhiteSpace(
+            _currentTopology.SelectedResourceId);
+
+    private string FocusedNodeId =>
+        HasRelationshipFocus
+            ? _currentTopology.SelectedResourceId
+            : "";
+
+    private bool IsFocusedRelationshipEdge(
+        TopologyEdge edge)
+    {
+        if (!HasRelationshipFocus)
+        {
+            return false;
+        }
+
+        return edge.SourceId.Equals(
+                   FocusedNodeId,
+                   StringComparison.OrdinalIgnoreCase) ||
+               edge.TargetId.Equals(
+                   FocusedNodeId,
+                   StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool IsDirectFocusNeighbor(
+        TopologyNode node)
+    {
+        if (!HasRelationshipFocus ||
+            node.Id.Equals(
+                FocusedNodeId,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return _currentTopology.Edges
+            .Where(edge =>
+                IsRelationshipVisible(edge.Kind))
+            .Any(edge =>
+                IsFocusedRelationshipEdge(edge) &&
+                (
+                    edge.SourceId.Equals(
+                        node.Id,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    edge.TargetId.Equals(
+                        node.Id,
+                        StringComparison.OrdinalIgnoreCase)
+                ));
+    }
+
+    private bool ShouldKeepNodeVivid(
+        TopologyNode node)
+    {
+        if (!HasRelationshipFocus)
+        {
+            return true;
+        }
+
+        return node.Id.Equals(
+                   FocusedNodeId,
+                   StringComparison.OrdinalIgnoreCase) ||
+               IsDirectFocusNeighbor(node) ||
+               IsSearchMatch(node);
+    }
+
     private void RenderNodes(
         TopologyView topology,
         IReadOnlyDictionary<string, Point> positions)
@@ -1392,7 +1477,39 @@ public partial class TopologyCanvas : UserControl
                         TextWrapping.Wrap
                 });
 
-            if (IsSearchMatch(node))
+            border.Opacity =
+                ShouldKeepNodeVivid(node)
+                    ? 1.00
+                    : 0.08;
+
+            if (HasRelationshipFocus)
+            {
+                if (node.Id.Equals(
+                        FocusedNodeId,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    border.BorderBrush =
+                        new SolidColorBrush(
+                            Color.Parse("#FDE047"));
+
+                    border.BorderThickness =
+                        new Thickness(5);
+                }
+                else if (IsDirectFocusNeighbor(node))
+                {
+                    border.BorderBrush =
+                        new SolidColorBrush(
+                            Color.Parse("#38BDF8"));
+
+                    border.BorderThickness =
+                        new Thickness(3);
+                }
+            }
+
+            if (IsSearchMatch(node) &&
+                !node.Id.Equals(
+                    FocusedNodeId,
+                    StringComparison.OrdinalIgnoreCase))
             {
                 border.BorderBrush =
                     new SolidColorBrush(
@@ -1408,6 +1525,40 @@ public partial class TopologyCanvas : UserControl
                             : 3);
             }
 
+            if (HasRelationshipFocus &&
+                node.Id.Equals(
+                    FocusedNodeId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                panel.Children.Insert(
+                    0,
+                    new TextBlock
+                    {
+                        Text = "●  FOCUS",
+                        FontSize = 11,
+                        FontWeight =
+                            FontWeight.Bold,
+                        Foreground =
+                            new SolidColorBrush(
+                                Color.Parse("#FDE047"))
+                    });
+            }
+            else if (IsDirectFocusNeighbor(node))
+            {
+                panel.Children.Insert(
+                    0,
+                    new TextBlock
+                    {
+                        Text = "●  DIRECT",
+                        FontSize = 10,
+                        FontWeight =
+                            FontWeight.SemiBold,
+                        Foreground =
+                            new SolidColorBrush(
+                                Color.Parse("#38BDF8"))
+                    });
+            }
+
             border.Child = panel;
 
             border.SetValue(
@@ -1421,7 +1572,9 @@ public partial class TopologyCanvas : UserControl
             border.PointerPressed +=
                 (_, eventArgs) =>
                 {
+                    _isRelationshipFocusEnabled = true;
                     NodeInvoked?.Invoke(node);
+                    RenderCurrentTopology();
                     eventArgs.Handled = true;
                 };
 
