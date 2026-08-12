@@ -904,6 +904,10 @@ public partial class UniversalWorkbenchWindow : Window
                 _topology)
             .Restore(view);
 
+        TopologyWorkspace
+            .PrepareSavedViewVisualState(
+                summary.Plan);
+
         RenderTopologySelection();
 
         return summary;

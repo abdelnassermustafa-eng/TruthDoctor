@@ -78,6 +78,10 @@ public partial class TopologyCanvas : UserControl
 
     private bool _isUpdatingDomainSelector;
 
+    private bool _isRestoringSavedView;
+
+    private long _savedViewRestoreVersion;
+
     private bool _isPanning;
     private Point _panStart;
     private Vector _panStartOffset;
@@ -486,7 +490,8 @@ public partial class TopologyCanvas : UserControl
         object? sender,
         SelectionChangedEventArgs eventArgs)
     {
-        if (sender is not ComboBox comboBox ||
+        if (_isRestoringSavedView ||
+            sender is not ComboBox comboBox ||
             comboBox.SelectedItem is not
                 ComboBoxItem item ||
             !Enum.TryParse<TopologyLayoutMode>(
@@ -1716,6 +1721,131 @@ public partial class TopologyCanvas : UserControl
         TopologyZoomInButton.IsEnabled =
             _zoom < MaximumZoom;
     }
+
+    public void PrepareSavedViewVisualState(
+        TopologySavedViewRestorePlan plan)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+
+        var restoreVersion =
+            ++_savedViewRestoreVersion;
+
+        _isRestoringSavedView =
+            true;
+
+        try
+        {
+            _layoutMode =
+                plan.LayoutMode;
+
+            for (var index = 0;
+                 index <
+                 TopologyLayoutComboBox.Items.Count;
+                 index++)
+            {
+                if (TopologyLayoutComboBox.Items[index] is
+                        ComboBoxItem item &&
+                    string.Equals(
+                        item.Tag?.ToString(),
+                        _layoutMode.ToString(),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    TopologyLayoutComboBox.SelectedIndex =
+                        index;
+
+                    break;
+                }
+            }
+
+            _selectedDomainId =
+                plan.LiveSelectedDomainId;
+
+            _collapsedDomainIds.Clear();
+
+            foreach (var domainId in
+                     plan.CollapsedDomainIds)
+            {
+                _collapsedDomainIds.Add(
+                    domainId);
+            }
+
+            var filters =
+                plan.RelationshipFilters;
+
+            ContainmentFilter.IsChecked =
+                filters.Containment;
+
+            PlacementFilter.IsChecked =
+                filters.Placement;
+
+            DependencyFilter.IsChecked =
+                filters.Dependency;
+
+            ConnectivityFilter.IsChecked =
+                filters.Connectivity;
+
+            SecurityFilter.IsChecked =
+                filters.Security;
+
+            TrafficFilter.IsChecked =
+                filters.Traffic;
+
+            AssociationFilter.IsChecked =
+                filters.Association;
+
+            OtherFilter.IsChecked =
+                filters.Other;
+
+            AllRelationshipFilter.IsChecked =
+                RelationshipFilters.All(filter =>
+                    filter.IsChecked == true);
+
+            _searchText =
+                plan.SearchText.Trim();
+
+            TopologySearchTextBox.Text =
+                _searchText;
+
+            TopologyMinimapPanel.IsVisible =
+                plan.IsMinimapVisible;
+
+            TopologyShowMinimapButton.IsVisible =
+                !plan.IsMinimapVisible;
+
+            SetZoom(
+                plan.Zoom);
+
+            ResetStateForDomainChange();
+        }
+        finally
+        {
+            _isRestoringSavedView =
+                false;
+        }
+
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (restoreVersion !=
+                    _savedViewRestoreVersion)
+                {
+                    return;
+                }
+
+                TopologyScrollViewer.Offset =
+                    new Vector(
+                        Math.Max(
+                            0,
+                            plan.ScrollOffset.X),
+
+                        Math.Max(
+                            0,
+                            plan.ScrollOffset.Y));
+
+                UpdateMinimapViewport();
+            });
+    }
+
 
     public TopologySavedView CaptureSavedView(
         string id,
@@ -3256,7 +3386,8 @@ public partial class TopologyCanvas : UserControl
         object? sender,
         TextChangedEventArgs eventArgs)
     {
-        if (sender is not TextBox textBox)
+        if (_isRestoringSavedView ||
+            sender is not TextBox textBox)
         {
             return;
         }
