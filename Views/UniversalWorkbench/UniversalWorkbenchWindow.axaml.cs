@@ -58,6 +58,12 @@ public partial class UniversalWorkbenchWindow : Window
     private readonly WorkbenchDiscoveryController
         _discovery;
 
+    private readonly TopologySavedViewCatalogService
+        _savedViews;
+
+    private readonly TopologySavedViewStoreLoadResult
+        _savedViewLoadResult;
+
     private PlatformState? _state;
     private List<InfrastructureResource> _visibleResources = [];
 
@@ -100,6 +106,18 @@ public partial class UniversalWorkbenchWindow : Window
                 _workbenchState);
 
         InitializeComponent();
+
+        var savedViewStoragePath =
+            new TopologySavedViewStoragePathResolver()
+                .FilePath;
+
+        _savedViews =
+            new TopologySavedViewCatalogService(
+                new TopologySavedViewFileStore(
+                    savedViewStoragePath));
+
+        _savedViewLoadResult =
+            _savedViews.Load();
 
         TopologyWorkspace.NodeInvoked += node =>
         {
@@ -891,6 +909,19 @@ public partial class UniversalWorkbenchWindow : Window
     {
         return LocationComboBox.SelectedItem?.ToString();
     }
+
+    public IReadOnlyList<TopologySavedView>
+        SavedTopologyViews =>
+            _savedViews.All;
+
+    public TopologySavedViewStoreLoadResult
+        SavedTopologyViewLoadResult =>
+            _savedViewLoadResult;
+
+    public string TopologySavedViewStoragePath =>
+        new TopologySavedViewStoragePathResolver()
+            .FilePath;
+
 
     public TopologySavedViewWorkbenchRestoreSummary
         RestoreTopologySavedView(
