@@ -172,7 +172,7 @@
                 BorderThickness="0,0,0,1">
 
                 <Grid
-                    ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto"
+                    ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                     ColumnSpacing="8">
 
                     <TextBlock
@@ -230,6 +230,42 @@
                         Foreground="#E2E8F0"
                         BorderBrush="#334A68"
                         Click="TopologyClearSearchButton_OnClick"/>
+
+                    <TextBlock
+                        Grid.Column="6"
+                        Text="Layout"
+                        Margin="8,0,0,0"
+                        Foreground="#7F9AB8"
+                        VerticalAlignment="Center"/>
+
+                    <ComboBox
+                        Grid.Column="7"
+                        Name="TopologyLayoutComboBox"
+                        Width="126"
+                        SelectedIndex="0">
+
+                        <ComboBoxItem
+                            Content="Radial"
+                            Tag="Radial"/>
+
+                        <ComboBoxItem
+                            Content="Hierarchy"
+                            Tag="Hierarchical"/>
+
+                        <ComboBoxItem
+                            Content="Network"
+                            Tag="Network"/>
+                    </ComboBox>
+
+                    <Button
+                        Grid.Column="8"
+                        Name="TopologyArrangeButton"
+                        Content="Arrange"
+                        Padding="11,5"
+                        Background="#0F766E"
+                        Foreground="White"
+                        BorderBrush="#14B8A6"
+                        Click="TopologyArrangeButton_OnClick"/>
                 </Grid>
             </Border>
 

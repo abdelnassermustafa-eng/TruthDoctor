@@ -24,6 +24,12 @@ public partial class TopologyCanvas : UserControl
             new AwsRenderContributor()
         ]);
 
+    private readonly TopologyLayoutEngine _layoutEngine =
+        new();
+
+    private TopologyLayoutMode _layoutMode =
+        TopologyLayoutMode.Radial;
+
     private const double CanvasWidth = 1600;
     private const double CanvasHeight = 1000;
 
@@ -96,6 +102,9 @@ public partial class TopologyCanvas : UserControl
         TopologySearchTextBox.KeyDown +=
             TopologySearchTextBox_OnKeyDown;
 
+        TopologyLayoutComboBox.SelectionChanged +=
+            TopologyLayoutComboBox_OnSelectionChanged;
+
         ApplyZoom();
         UpdateSearchControls();
     }
@@ -127,6 +136,56 @@ public partial class TopologyCanvas : UserControl
         object? sender,
         RoutedEventArgs eventArgs)
     {
+        FitTopologyToViewport();
+    }
+
+    private void TopologyArrangeButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        ArrangeCurrentTopology();
+    }
+
+    private void TopologyLayoutComboBox_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs eventArgs)
+    {
+        if (sender is not ComboBox comboBox ||
+            comboBox.SelectedItem is not
+                ComboBoxItem item ||
+            !Enum.TryParse<TopologyLayoutMode>(
+                item.Tag?.ToString(),
+                ignoreCase: true,
+                out var mode))
+        {
+            return;
+        }
+
+        _layoutMode =
+            mode;
+
+        ArrangeCurrentTopology();
+    }
+
+    private void ArrangeCurrentTopology()
+    {
+        if (_currentTopology.Nodes.Count == 0)
+        {
+            return;
+        }
+
+        RenderCurrentTopology();
+        FitTopologyToViewport();
+
+        TopologyScrollViewer.Offset =
+            new Vector(0, 0);
+
+        SetExportStatus(
+            $"Layout: {LayoutDisplayName()}");
+    }
+
+    private void FitTopologyToViewport()
+    {
         var availableWidth =
             Math.Max(
                 1,
@@ -144,6 +203,21 @@ public partial class TopologyCanvas : UserControl
 
         SetZoom(
             fitZoom);
+    }
+
+    private string LayoutDisplayName()
+    {
+        return _layoutMode switch
+        {
+            TopologyLayoutMode.Hierarchical =>
+                "Hierarchy",
+
+            TopologyLayoutMode.Network =>
+                "Network",
+
+            _ =>
+                "Radial"
+        };
     }
 
     private async void TopologyExportPngMenuItem_OnClick(
@@ -312,6 +386,11 @@ public partial class TopologyCanvas : UserControl
 
                             depth =
                                 CurrentTopologyDepth(),
+
+                            layout =
+                                _layoutMode
+                                    .ToString()
+                                    .ToLowerInvariant(),
 
                             zoom =
                                 _zoom,
@@ -1445,59 +1524,19 @@ public partial class TopologyCanvas : UserControl
     private Dictionary<string, Point> LayoutNodes(
         TopologyView topology)
     {
-        var positions =
-            new Dictionary<string, Point>(
+        return _layoutEngine
+            .Arrange(
+                topology,
+                _layoutMode,
+                CanvasWidth,
+                CanvasHeight)
+            .ToDictionary(
+                item => item.Key,
+                item =>
+                    new Point(
+                        item.Value.X,
+                        item.Value.Y),
                 StringComparer.OrdinalIgnoreCase);
-
-        var selected =
-            topology.Nodes.FirstOrDefault(
-                node => node.IsSelected);
-
-        if (selected is not null)
-        {
-            positions[selected.Id] =
-                new Point(
-                    700,
-                    420);
-        }
-
-        var others =
-            topology.Nodes
-                .Where(node => !node.IsSelected)
-                .ToList();
-
-        if (others.Count == 0)
-        {
-            return positions;
-        }
-
-        const double radius = 310;
-
-        for (var index = 0;
-             index < others.Count;
-             index++)
-        {
-            var angle =
-                2 *
-                Math.PI *
-                index /
-                others.Count;
-
-            var x =
-                700 +
-                Math.Cos(angle) *
-                radius;
-
-            var y =
-                420 +
-                Math.Sin(angle) *
-                radius;
-
-            positions[others[index].Id] =
-                new Point(x, y);
-        }
-
-        return positions;
     }
 
     private void RenderEdges(
