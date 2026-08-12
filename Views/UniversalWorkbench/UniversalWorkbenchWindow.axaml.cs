@@ -15,6 +15,7 @@ using TruthDoctor.Services.Visuals;
 using TruthDoctor.ViewModels;
 using TruthDoctor.Controllers.Workbench;
 using TruthDoctor.State;
+using TruthDoctor.Graph;
 
 namespace TruthDoctor.Views.UniversalWorkbench;
 
@@ -889,6 +890,23 @@ public partial class UniversalWorkbenchWindow : Window
     private string? GetSelectedLocation()
     {
         return LocationComboBox.SelectedItem?.ToString();
+    }
+
+    public TopologySavedViewWorkbenchRestoreSummary
+        RestoreTopologySavedView(
+            TopologySavedView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+
+        var summary =
+            new WorkbenchSavedViewRestoreCoordinator(
+                _workbenchState,
+                _topology)
+            .Restore(view);
+
+        RenderTopologySelection();
+
+        return summary;
     }
 
     private void RenderTopologySelection()
