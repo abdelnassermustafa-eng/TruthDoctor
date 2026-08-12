@@ -61,6 +61,108 @@ public sealed class WorkbenchTopologyController
         return true;
     }
 
+    public TopologySavedViewWorkbenchRestoreResult
+        RestoreSavedViewSelection(
+            TopologySavedViewRestorePlan plan,
+            GraphNode? selectedNode)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+
+        if (plan.Depth is < 1 or > 3)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(plan),
+                "Saved-view depth must be between 1 and 3.");
+        }
+
+        InfrastructureResource? resource =
+            null;
+
+        if (string.IsNullOrWhiteSpace(
+                plan.SelectedResourceId))
+        {
+            if (selectedNode is not null)
+            {
+                throw new ArgumentException(
+                    "A selected node cannot be supplied when " +
+                    "the restore plan has no selected resource.",
+                    nameof(selectedNode));
+            }
+        }
+        else
+        {
+            if (selectedNode is null)
+            {
+                throw new ArgumentException(
+                    "The saved-view resource could not be resolved.",
+                    nameof(selectedNode));
+            }
+
+            if (!selectedNode.Id.Equals(
+                    plan.SelectedResourceId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException(
+                    "The resolved graph node does not match " +
+                    "the saved-view resource ID.",
+                    nameof(selectedNode));
+            }
+
+            if (selectedNode.Resource is not
+                InfrastructureResource resolvedResource)
+            {
+                throw new ArgumentException(
+                    "The resolved graph node has no " +
+                    "infrastructure resource.",
+                    nameof(selectedNode));
+            }
+
+            resource =
+                resolvedResource;
+        }
+
+        var depthChanged =
+            _depth != plan.Depth;
+
+        var selectionChanged =
+            !IsSameResource(
+                _state.SelectedResource,
+                resource);
+
+        _depth =
+            plan.Depth;
+
+        _back.Clear();
+        _forward.Clear();
+
+        if (selectionChanged)
+        {
+            _selection.SelectResource(
+                resource);
+        }
+
+        _home =
+            resource;
+
+        return new TopologySavedViewWorkbenchRestoreResult
+        {
+            SelectionChanged =
+                selectionChanged,
+
+            DepthChanged =
+                depthChanged,
+
+            HasSelectedResource =
+                resource is not null,
+
+            SelectedResourceId =
+                selectedNode?.Id ?? "",
+
+            Depth =
+                _depth
+        };
+    }
+
     public bool CanGoBack =>
         _back.Count > 0;
 
