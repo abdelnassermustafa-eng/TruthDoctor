@@ -27,6 +27,13 @@ public partial class TopologyCanvas : UserControl
     private readonly TopologyLayoutEngine _layoutEngine =
         new();
 
+    private readonly TopologyDomainFilter _domainFilter =
+        new();
+
+    private readonly TopologyGroupBoundsEngine
+        _groupBoundsEngine =
+            new();
+
     private readonly TopologyMinimapMapper _minimapMapper =
         new();
 
@@ -48,8 +55,16 @@ public partial class TopologyCanvas : UserControl
 
     private double _zoom = 1.00;
 
+    private TopologyView _completeTopology =
+        new();
+
     private TopologyView _currentTopology =
         new();
+
+    private string _selectedDomainId =
+        TopologyDomainFilter.AllDomains;
+
+    private bool _isUpdatingDomainSelector;
 
     private bool _isPanning;
     private Point _panStart;
@@ -138,6 +153,9 @@ public partial class TopologyCanvas : UserControl
         TopologyLayoutComboBox.SelectionChanged +=
             TopologyLayoutComboBox_OnSelectionChanged;
 
+        TopologyDomainComboBox.SelectionChanged +=
+            TopologyDomainComboBox_OnSelectionChanged;
+
         ApplyZoom();
         UpdateSearchControls();
     }
@@ -177,6 +195,171 @@ public partial class TopologyCanvas : UserControl
         RoutedEventArgs eventArgs)
     {
         ArrangeCurrentTopology();
+    }
+
+    private void RefreshDomainSelector()
+    {
+        var domains =
+            _domainFilter.AvailableDomains(
+                _completeTopology);
+
+        var selectedStillExists =
+            string.IsNullOrWhiteSpace(
+                _selectedDomainId) ||
+            domains.Any(domain =>
+                domain.Id.Equals(
+                    _selectedDomainId,
+                    StringComparison.OrdinalIgnoreCase));
+
+        if (!selectedStillExists)
+        {
+            _selectedDomainId =
+                TopologyDomainFilter.AllDomains;
+        }
+
+        _isUpdatingDomainSelector =
+            true;
+
+        try
+        {
+            TopologyDomainComboBox.Items.Clear();
+
+            TopologyDomainComboBox.Items.Add(
+                new ComboBoxItem
+                {
+                    Content =
+                        $"All domains · " +
+                        $"{_completeTopology.Nodes.Count}",
+
+                    Tag =
+                        TopologyDomainFilter.AllDomains
+                });
+
+            foreach (var domain in domains)
+            {
+                TopologyDomainComboBox.Items.Add(
+                    new ComboBoxItem
+                    {
+                        Content =
+                            $"{domain.DisplayName} · " +
+                            $"{domain.Count}",
+
+                        Tag =
+                            domain.Id
+                    });
+            }
+
+            var selectedIndex = 0;
+
+            for (var index = 1;
+                 index <
+                 TopologyDomainComboBox.Items.Count;
+                 index++)
+            {
+                if (TopologyDomainComboBox.Items[index] is
+                        ComboBoxItem item &&
+                    string.Equals(
+                        item.Tag?.ToString(),
+                        _selectedDomainId,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    selectedIndex =
+                        index;
+
+                    break;
+                }
+            }
+
+            TopologyDomainComboBox.SelectedIndex =
+                selectedIndex;
+
+            TopologyDomainComboBox.IsEnabled =
+                domains.Count > 0;
+        }
+        finally
+        {
+            _isUpdatingDomainSelector =
+                false;
+        }
+    }
+
+    private void ApplySelectedDomain()
+    {
+        _currentTopology =
+            _domainFilter.Apply(
+                _completeTopology,
+                _selectedDomainId);
+    }
+
+    private void TopologyDomainComboBox_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs eventArgs)
+    {
+        if (_isUpdatingDomainSelector ||
+            sender is not ComboBox comboBox ||
+            comboBox.SelectedItem is not
+                ComboBoxItem item)
+        {
+            return;
+        }
+
+        var selectedDomainId =
+            item.Tag?.ToString() ??
+            TopologyDomainFilter.AllDomains;
+
+        if (selectedDomainId.Equals(
+                _selectedDomainId,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _selectedDomainId =
+            selectedDomainId;
+
+        ApplySelectedDomain();
+        ResetStateForDomainChange();
+
+        RefreshSearchMatches(
+            preserveActiveMatch: false);
+
+        TopologyStartPathButton.IsEnabled =
+            _currentTopology.Nodes.Count > 0 &&
+            !string.IsNullOrWhiteSpace(
+                _currentTopology.SelectedResourceId);
+
+        RenderCurrentTopology();
+        FitTopologyToViewport();
+
+        TopologyScrollViewer.Offset =
+            new Vector(0, 0);
+
+    }
+
+    private void ResetStateForDomainChange()
+    {
+        _isRelationshipFocusEnabled =
+            false;
+
+        _isPathSelectionMode =
+            false;
+
+        _pathSourceId =
+            "";
+
+        _activePath =
+            null;
+
+        ClearPathDetails();
+
+        TopologyStartPathButton.Content =
+            "Start path";
+
+        TopologyClearPathButton.IsEnabled =
+            false;
+
+        TopologyPathStatusText.Text =
+            "Center a source resource, then start a path";
     }
 
     private void TopologyLayoutComboBox_OnSelectionChanged(
@@ -247,6 +430,9 @@ public partial class TopologyCanvas : UserControl
 
             TopologyLayoutMode.Network =>
                 "Network",
+
+            TopologyLayoutMode.Domain =>
+                "Domains",
 
             _ =>
                 "Radial"
@@ -424,6 +610,12 @@ public partial class TopologyCanvas : UserControl
                                 _layoutMode
                                     .ToString()
                                     .ToLowerInvariant(),
+
+                            domain =
+                                string.IsNullOrWhiteSpace(
+                                    _selectedDomainId)
+                                    ? "all"
+                                    : _selectedDomainId,
 
                             zoom =
                                 _zoom,
@@ -767,6 +959,11 @@ public partial class TopologyCanvas : UserControl
 
         var scaleY =
             MinimapHeight / CanvasHeight;
+
+        RenderMinimapDomainGroups(
+            _nodePositions,
+            scaleX,
+            scaleY);
 
         var visibleEdges =
             CurrentVisibleEdges();
@@ -1823,13 +2020,16 @@ public partial class TopologyCanvas : UserControl
     {
         ArgumentNullException.ThrowIfNull(topology);
 
-        _currentTopology =
+        _completeTopology =
             topology;
 
+        RefreshDomainSelector();
+        ApplySelectedDomain();
+
         TopologyStartPathButton.IsEnabled =
-            topology.Nodes.Count > 0 &&
+            _currentTopology.Nodes.Count > 0 &&
             !string.IsNullOrWhiteSpace(
-                topology.SelectedResourceId);
+                _currentTopology.SelectedResourceId);
 
         RefreshSearchMatches(
             preserveActiveMatch: true);
@@ -1885,6 +2085,10 @@ public partial class TopologyCanvas : UserControl
 
         _nodePositions =
             positions;
+
+        RenderDomainGroups(
+            topology,
+            positions);
 
         RenderEdges(
             visibleTopology,
@@ -2024,6 +2228,350 @@ public partial class TopologyCanvas : UserControl
                         item.Value.X,
                         item.Value.Y),
                 StringComparer.OrdinalIgnoreCase);
+    }
+
+
+    private void RenderDomainGroups(
+        TopologyView topology,
+        IReadOnlyDictionary<string, Point> positions)
+    {
+        if (_layoutMode !=
+            TopologyLayoutMode.Domain)
+        {
+            return;
+        }
+
+        foreach (var bounds in
+                 CalculateDomainGroupBounds(
+                     topology,
+                     positions))
+        {
+            var colors =
+                DomainGroupColors(
+                    bounds.GroupId);
+
+            var boundary =
+                new Border
+                {
+                    Width =
+                        bounds.Width,
+
+                    Height =
+                        bounds.Height,
+
+                    Background =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                colors.Fill)),
+
+                    BorderBrush =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                colors.Stroke)),
+
+                    BorderThickness =
+                        new Thickness(1.5),
+
+                    CornerRadius =
+                        new CornerRadius(14),
+
+                    Opacity = 0.82,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+            Canvas.SetLeft(
+                boundary,
+                bounds.X);
+
+            Canvas.SetTop(
+                boundary,
+                bounds.Y);
+
+            RootCanvas.Children.Add(
+                boundary);
+
+            var label =
+                new Border
+                {
+                    Padding =
+                        new Thickness(
+                            10,
+                            4),
+
+                    Background =
+                        new SolidColorBrush(
+                            Color.Parse("#F20B1728")),
+
+                    BorderBrush =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                colors.Stroke)),
+
+                    BorderThickness =
+                        new Thickness(1),
+
+                    CornerRadius =
+                        new CornerRadius(7),
+
+                    IsHitTestVisible =
+                        false,
+
+                    Child =
+                        new TextBlock
+                        {
+                            Text =
+                                $"{bounds.DisplayName}  ·  " +
+                                $"{bounds.NodeCount}",
+
+                            FontSize = 11,
+
+                            FontWeight =
+                                FontWeight.SemiBold,
+
+                            Foreground =
+                                new SolidColorBrush(
+                                    Color.Parse(
+                                        colors.Text))
+                        }
+                };
+
+            Canvas.SetLeft(
+                label,
+                bounds.X + 12);
+
+            Canvas.SetTop(
+                label,
+                bounds.Y + 8);
+
+            RootCanvas.Children.Add(
+                label);
+        }
+    }
+
+    private void RenderMinimapDomainGroups(
+        IReadOnlyDictionary<string, Point> positions,
+        double scaleX,
+        double scaleY)
+    {
+        if (_layoutMode !=
+            TopologyLayoutMode.Domain)
+        {
+            return;
+        }
+
+        foreach (var bounds in
+                 CalculateDomainGroupBounds(
+                     _currentTopology,
+                     positions))
+        {
+            var colors =
+                DomainGroupColors(
+                    bounds.GroupId);
+
+            var miniatureBoundary =
+                new Border
+                {
+                    Width =
+                        Math.Max(
+                            3,
+                            bounds.Width *
+                            scaleX),
+
+                    Height =
+                        Math.Max(
+                            3,
+                            bounds.Height *
+                            scaleY),
+
+                    Background =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                colors.Fill)),
+
+                    BorderBrush =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                colors.Stroke)),
+
+                    BorderThickness =
+                        new Thickness(0.8),
+
+                    CornerRadius =
+                        new CornerRadius(2),
+
+                    Opacity = 0.75,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+            Canvas.SetLeft(
+                miniatureBoundary,
+                bounds.X * scaleX);
+
+            Canvas.SetTop(
+                miniatureBoundary,
+                bounds.Y * scaleY);
+
+            TopologyMinimapContent.Children.Add(
+                miniatureBoundary);
+        }
+    }
+
+    private IReadOnlyList<TopologyGroupBounds>
+        CalculateDomainGroupBounds(
+        TopologyView topology,
+        IReadOnlyDictionary<string, Point> positions)
+    {
+        var layoutPositions =
+            positions.ToDictionary(
+                item =>
+                    item.Key,
+
+                item =>
+                    new TopologyLayoutPosition(
+                        item.Value.X,
+                        item.Value.Y),
+
+                StringComparer.OrdinalIgnoreCase);
+
+        return _groupBoundsEngine.Calculate(
+            topology,
+            layoutPositions,
+            TopologyNodeWidth,
+            TopologyNodeHeight);
+    }
+
+    private static (
+        string Stroke,
+        string Fill,
+        string Text)
+        DomainGroupColors(
+        string groupId)
+    {
+        return groupId
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "compute" =>
+                (
+                    "#38BDF8",
+                    "#121E40AF",
+                    "#7DD3FC"
+                ),
+
+            "networking" =>
+                (
+                    "#A78BFA",
+                    "#122E1A47",
+                    "#C4B5FD"
+                ),
+
+            "load-balancing" =>
+                (
+                    "#2DD4BF",
+                    "#1213453F",
+                    "#5EEAD4"
+                ),
+
+            "storage" =>
+                (
+                    "#F59E0B",
+                    "#12451A03",
+                    "#FCD34D"
+                ),
+
+            "identity" or
+            "security" or
+            "identity-security" =>
+                (
+                    "#FB7185",
+                    "#124C0519",
+                    "#FDA4AF"
+                ),
+
+            "database" or
+            "databases" =>
+                (
+                    "#34D399",
+                    "#12064E3B",
+                    "#6EE7B7"
+                ),
+
+            "management" or
+            "operations" =>
+                (
+                    "#60A5FA",
+                    "#121E3A8A",
+                    "#93C5FD"
+                ),
+
+            _ =>
+                StableDomainGroupColors(
+                    groupId)
+        };
+    }
+
+    private static (
+        string Stroke,
+        string Fill,
+        string Text)
+        StableDomainGroupColors(
+        string groupId)
+    {
+        var palette =
+            new[]
+            {
+                (
+                    Stroke: "#C084FC",
+                    Fill: "#123B0764",
+                    Text: "#D8B4FE"
+                ),
+
+                (
+                    Stroke: "#22D3EE",
+                    Fill: "#12164E63",
+                    Text: "#67E8F9"
+                ),
+
+                (
+                    Stroke: "#F472B6",
+                    Fill: "#12500724",
+                    Text: "#F9A8D4"
+                ),
+
+                (
+                    Stroke: "#A3E635",
+                    Fill: "#123A4D0A",
+                    Text: "#BEF264"
+                ),
+
+                (
+                    Stroke: "#FB923C",
+                    Fill: "#12431907",
+                    Text: "#FDBA74"
+                )
+            };
+
+        var stableValue = 0;
+
+        foreach (var character in
+                 groupId.ToLowerInvariant())
+        {
+            stableValue =
+                (
+                    stableValue *
+                    31 +
+                    character
+                ) &
+                0x7FFFFFFF;
+        }
+
+        return palette[
+            stableValue %
+            palette.Length];
     }
 
     private void RenderEdges(

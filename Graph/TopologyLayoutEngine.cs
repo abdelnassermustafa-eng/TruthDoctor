@@ -43,6 +43,12 @@ public sealed class TopologyLayoutEngine
 
         return mode switch
         {
+            TopologyLayoutMode.Domain =>
+                ArrangeDomains(
+                    topology,
+                    canvasWidth,
+                    canvasHeight),
+
             TopologyLayoutMode.Hierarchical =>
                 ArrangeHierarchical(
                     topology,
@@ -61,6 +67,292 @@ public sealed class TopologyLayoutEngine
                     canvasWidth,
                     canvasHeight)
         };
+    }
+
+    private static Dictionary<
+        string,
+        TopologyLayoutPosition> ArrangeDomains(
+        TopologyView topology,
+        double canvasWidth,
+        double canvasHeight)
+    {
+        var groupingEngine =
+            new TopologyGroupingEngine();
+
+        var groups =
+            groupingEngine.GroupByDomain(
+                topology);
+
+        var positions =
+            CreatePositionDictionary();
+
+        if (groups.Count == 0)
+        {
+            return positions;
+        }
+
+        var selected =
+            FindSelected(topology);
+
+        var groupColumnCount =
+            (int)Math.Ceiling(
+                Math.Sqrt(
+                    groups.Count));
+
+        var groupRowCount =
+            (int)Math.Ceiling(
+                (double)groups.Count /
+                groupColumnCount);
+
+        var usableWidth =
+            Math.Max(
+                1,
+                canvasWidth -
+                (2 * HorizontalMargin));
+
+        var usableHeight =
+            Math.Max(
+                1,
+                canvasHeight -
+                (2 * VerticalMargin));
+
+        var cellWidth =
+            usableWidth /
+            groupColumnCount;
+
+        var cellHeight =
+            usableHeight /
+            groupRowCount;
+
+        const double groupInsetX = 56;
+        const double groupInsetY = 54;
+
+        for (var groupIndex = 0;
+             groupIndex < groups.Count;
+             groupIndex++)
+        {
+            var group =
+                groups[groupIndex];
+
+            var memberIds =
+                group.NodeIds.ToHashSet(
+                    StringComparer.OrdinalIgnoreCase);
+
+            var members =
+                topology.Nodes
+                    .Where(node =>
+                        memberIds.Contains(
+                            node.Id))
+                    .OrderBy(node =>
+                        node.DisplayName,
+                        StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(node =>
+                        node.Id,
+                        StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+            if (members.Count == 0)
+            {
+                continue;
+            }
+
+            var groupColumn =
+                groupIndex %
+                groupColumnCount;
+
+            var groupRow =
+                groupIndex /
+                groupColumnCount;
+
+            var cellX =
+                HorizontalMargin +
+                (groupColumn *
+                 cellWidth);
+
+            var cellY =
+                VerticalMargin +
+                (groupRow *
+                 cellHeight);
+
+            var innerWidth =
+                Math.Max(
+                    NodeWidthAllowance,
+                    cellWidth -
+                    (2 * groupInsetX));
+
+            var innerHeight =
+                Math.Max(
+                    NodeHeightAllowance,
+                    cellHeight -
+                    (2 * groupInsetY));
+
+            var maximumMemberColumns =
+                Math.Max(
+                    1,
+                    (int)Math.Floor(
+                        innerWidth /
+                        NodeWidthAllowance));
+
+            var memberColumnCount =
+                Math.Min(
+                    members.Count,
+                    maximumMemberColumns);
+
+            var memberRowCount =
+                (int)Math.Ceiling(
+                    (double)members.Count /
+                    memberColumnCount);
+
+            var requiredWidth =
+                (
+                    (memberColumnCount - 1) *
+                    NodeWidthAllowance
+                ) +
+                160;
+
+            var requiredHeight =
+                (
+                    (memberRowCount - 1) *
+                    NodeHeightAllowance
+                ) +
+                70;
+
+            var startX =
+                cellX +
+                Math.Max(
+                    groupInsetX,
+                    (cellWidth -
+                     requiredWidth) /
+                    2);
+
+            var startY =
+                cellY +
+                Math.Max(
+                    groupInsetY,
+                    (cellHeight -
+                     requiredHeight) /
+                    2);
+
+            var orderedMembers =
+                members.ToList();
+
+            var selectedIndex =
+                orderedMembers.FindIndex(node =>
+                    node.Id.Equals(
+                        selected.Id,
+                        StringComparison.OrdinalIgnoreCase));
+
+            if (selectedIndex >= 0)
+            {
+                var centerSlot =
+                    FindClosestGridSlotToCenter(
+                        orderedMembers.Count,
+                        memberColumnCount,
+                        startX,
+                        startY,
+                        cellX +
+                        (cellWidth / 2),
+                        cellY +
+                        (cellHeight / 2));
+
+                (
+                    orderedMembers[selectedIndex],
+                    orderedMembers[centerSlot]
+                ) =
+                (
+                    orderedMembers[centerSlot],
+                    orderedMembers[selectedIndex]
+                );
+            }
+
+            for (var memberIndex = 0;
+                 memberIndex < orderedMembers.Count;
+                 memberIndex++)
+            {
+                var column =
+                    memberIndex %
+                    memberColumnCount;
+
+                var row =
+                    memberIndex /
+                    memberColumnCount;
+
+                positions[
+                    orderedMembers[memberIndex].Id] =
+                    new TopologyLayoutPosition(
+                        startX +
+                        (column *
+                         NodeWidthAllowance),
+
+                        startY +
+                        (row *
+                         NodeHeightAllowance));
+            }
+        }
+
+        return positions;
+    }
+
+    private static int FindClosestGridSlotToCenter(
+        int nodeCount,
+        int columnCount,
+        double startX,
+        double startY,
+        double centerX,
+        double centerY)
+    {
+        var closestIndex = 0;
+        var closestDistance =
+            double.MaxValue;
+
+        for (var index = 0;
+             index < nodeCount;
+             index++)
+        {
+            var column =
+                index %
+                columnCount;
+
+            var row =
+                index /
+                columnCount;
+
+            var nodeCenterX =
+                startX +
+                (column *
+                 NodeWidthAllowance) +
+                80;
+
+            var nodeCenterY =
+                startY +
+                (row *
+                 NodeHeightAllowance) +
+                35;
+
+            var deltaX =
+                nodeCenterX -
+                centerX;
+
+            var deltaY =
+                nodeCenterY -
+                centerY;
+
+            var distance =
+                (deltaX * deltaX) +
+                (deltaY * deltaY);
+
+            if (distance <
+                closestDistance)
+            {
+                closestIndex =
+                    index;
+
+                closestDistance =
+                    distance;
+            }
+        }
+
+        return closestIndex;
     }
 
     private static Dictionary<

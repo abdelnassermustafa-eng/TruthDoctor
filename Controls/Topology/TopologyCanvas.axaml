@@ -172,100 +172,131 @@
                 BorderThickness="0,0,0,1">
 
                 <Grid
-                    ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-                    ColumnSpacing="8">
+                    RowDefinitions="Auto,Auto"
+                    RowSpacing="7">
 
-                    <TextBlock
-                        Grid.Column="0"
-                        Text="Find"
-                        FontWeight="SemiBold"
-                        Foreground="#E2E8F0"
-                        VerticalAlignment="Center"/>
+                    <Grid
+                        Grid.Row="0"
+                        ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto"
+                        ColumnSpacing="8">
 
-                    <TextBox
-                        Grid.Column="1"
-                        Name="TopologySearchTextBox"
-                        Height="34"
-                        MinWidth="220"
-                        MaxWidth="420"
-                        Watermark="Search this topology..."/>
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="Find"
+                            FontWeight="SemiBold"
+                            Foreground="#E2E8F0"
+                            VerticalAlignment="Center"/>
 
-                    <Button
-                        Grid.Column="2"
-                        Name="TopologyPreviousMatchButton"
-                        Content="← Previous"
-                        IsEnabled="False"
-                        Padding="10,5"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
-                        Click="TopologyPreviousMatchButton_OnClick"/>
+                        <TextBox
+                            Grid.Column="1"
+                            Name="TopologySearchTextBox"
+                            Height="34"
+                            MinWidth="120"
+                            MaxWidth="520"
+                            HorizontalAlignment="Stretch"
+                            Watermark="Search this topology..."/>
 
-                    <Button
-                        Grid.Column="3"
-                        Name="TopologyNextMatchButton"
-                        Content="Next →"
-                        IsEnabled="False"
-                        Padding="10,5"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
-                        Click="TopologyNextMatchButton_OnClick"/>
+                        <Button
+                            Grid.Column="2"
+                            Name="TopologyPreviousMatchButton"
+                            Content="← Previous"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Background="#15263D"
+                            Foreground="#E2E8F0"
+                            BorderBrush="#334A68"
+                            Click="TopologyPreviousMatchButton_OnClick"/>
 
-                    <TextBlock
-                        Grid.Column="4"
-                        Name="TopologySearchStatusText"
-                        Text="Search current graph"
-                        MinWidth="105"
-                        Foreground="#7F9AB8"
-                        VerticalAlignment="Center"/>
+                        <Button
+                            Grid.Column="3"
+                            Name="TopologyNextMatchButton"
+                            Content="Next →"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Background="#15263D"
+                            Foreground="#E2E8F0"
+                            BorderBrush="#334A68"
+                            Click="TopologyNextMatchButton_OnClick"/>
 
-                    <Button
-                        Grid.Column="5"
-                        Name="TopologyClearSearchButton"
-                        Content="Clear"
-                        IsEnabled="False"
-                        Padding="10,5"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
-                        Click="TopologyClearSearchButton_OnClick"/>
+                        <TextBlock
+                            Grid.Column="4"
+                            Name="TopologySearchStatusText"
+                            Text="Search current graph"
+                            MinWidth="105"
+                            MaxWidth="170"
+                            TextTrimming="CharacterEllipsis"
+                            Foreground="#7F9AB8"
+                            VerticalAlignment="Center"/>
 
-                    <TextBlock
-                        Grid.Column="6"
-                        Text="Layout"
-                        Margin="8,0,0,0"
-                        Foreground="#7F9AB8"
-                        VerticalAlignment="Center"/>
+                        <Button
+                            Grid.Column="5"
+                            Name="TopologyClearSearchButton"
+                            Content="Clear"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Background="#15263D"
+                            Foreground="#E2E8F0"
+                            BorderBrush="#334A68"
+                            Click="TopologyClearSearchButton_OnClick"/>
+                    </Grid>
 
-                    <ComboBox
-                        Grid.Column="7"
-                        Name="TopologyLayoutComboBox"
-                        Width="126"
-                        SelectedIndex="0">
+                    <Grid
+                        Grid.Row="1"
+                        ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
+                        ColumnSpacing="8">
 
-                        <ComboBoxItem
-                            Content="Radial"
-                            Tag="Radial"/>
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="Domain"
+                            FontWeight="SemiBold"
+                            Foreground="#E2E8F0"
+                            VerticalAlignment="Center"/>
 
-                        <ComboBoxItem
-                            Content="Hierarchy"
-                            Tag="Hierarchical"/>
+                        <ComboBox
+                            Grid.Column="1"
+                            Name="TopologyDomainComboBox"
+                            Width="180"
+                            IsEnabled="False"/>
 
-                        <ComboBoxItem
-                            Content="Network"
-                            Tag="Network"/>
-                    </ComboBox>
+                        <TextBlock
+                            Grid.Column="3"
+                            Text="Layout"
+                            Foreground="#7F9AB8"
+                            VerticalAlignment="Center"/>
 
-                    <Button
-                        Grid.Column="8"
-                        Name="TopologyArrangeButton"
-                        Content="Arrange"
-                        Padding="11,5"
-                        Background="#0F766E"
-                        Foreground="White"
-                        BorderBrush="#14B8A6"
-                        Click="TopologyArrangeButton_OnClick"/>
+                        <ComboBox
+                            Grid.Column="4"
+                            Name="TopologyLayoutComboBox"
+                            Width="136"
+                            SelectedIndex="0">
+
+                            <ComboBoxItem
+                                Content="Radial"
+                                Tag="Radial"/>
+
+                            <ComboBoxItem
+                                Content="Hierarchy"
+                                Tag="Hierarchical"/>
+
+                            <ComboBoxItem
+                                Content="Network"
+                                Tag="Network"/>
+
+                            <ComboBoxItem
+                                Content="Domains"
+                                Tag="Domain"/>
+                        </ComboBox>
+
+                        <Button
+                            Grid.Column="5"
+                            Name="TopologyArrangeButton"
+                            Content="Arrange"
+                            Padding="11,5"
+                            Background="#0F766E"
+                            Foreground="White"
+                            BorderBrush="#14B8A6"
+                            Click="TopologyArrangeButton_OnClick"/>
+                    </Grid>
                 </Grid>
             </Border>
 
