@@ -1717,6 +1717,99 @@ public partial class TopologyCanvas : UserControl
             _zoom < MaximumZoom;
     }
 
+    public TopologySavedView CaptureSavedView(
+        string id,
+        string name,
+        DateTimeOffset createdAtUtc,
+        DateTimeOffset updatedAtUtc)
+    {
+        var state =
+            new TopologySavedViewCaptureState
+            {
+                SelectedResourceId =
+                    _currentTopology
+                        .SelectedResourceId,
+
+                Depth =
+                    CurrentTopologyDepth(),
+
+                LayoutMode =
+                    _layoutMode,
+
+                LiveSelectedDomainId =
+                    _selectedDomainId,
+
+                CollapsedDomainIds =
+                    _collapsedDomainIds
+                        .OrderBy(
+                            domainId => domainId,
+                            StringComparer.OrdinalIgnoreCase)
+                        .ToArray(),
+
+                RelationshipFilters =
+                    new TopologyRelationshipFilterState
+                    {
+                        Containment =
+                            ContainmentFilter.IsChecked ==
+                            true,
+
+                        Placement =
+                            PlacementFilter.IsChecked ==
+                            true,
+
+                        Dependency =
+                            DependencyFilter.IsChecked ==
+                            true,
+
+                        Connectivity =
+                            ConnectivityFilter.IsChecked ==
+                            true,
+
+                        Security =
+                            SecurityFilter.IsChecked ==
+                            true,
+
+                        Traffic =
+                            TrafficFilter.IsChecked ==
+                            true,
+
+                        Association =
+                            AssociationFilter.IsChecked ==
+                            true,
+
+                        Other =
+                            OtherFilter.IsChecked ==
+                            true
+                    },
+
+                Zoom =
+                    _zoom,
+
+                ScrollOffset =
+                    new TopologyScrollOffset(
+                        TopologyScrollViewer
+                            .Offset.X,
+
+                        TopologyScrollViewer
+                            .Offset.Y),
+
+                IsMinimapVisible =
+                    TopologyMinimapPanel
+                        .IsVisible,
+
+                SearchText =
+                    _searchText
+            };
+
+        return new TopologySavedViewCaptureService()
+            .Capture(
+                id,
+                name,
+                createdAtUtc,
+                updatedAtUtc,
+                state);
+    }
+
     public void SetNavigationState(
         bool canGoBack,
         bool canGoForward,
