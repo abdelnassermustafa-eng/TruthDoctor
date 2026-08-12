@@ -461,24 +461,122 @@
                 </Grid>
             </Border>
 
-            <ScrollViewer
-                Grid.Row="4"
-                Name="TopologyScrollViewer"
-                Padding="12"
-                HorizontalScrollBarVisibility="Auto"
-                VerticalScrollBarVisibility="Auto">
+            <Grid
+                Grid.Row="4">
 
-                <Canvas
-                    Name="TopologySurface"
-                    Width="1600"
-                    Height="1000">
+                <ScrollViewer
+                    Name="TopologyScrollViewer"
+                    Padding="12"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
 
                     <Canvas
-                        Name="RootCanvas"
+                        Name="TopologySurface"
                         Width="1600"
-                        Height="1000"/>
-                </Canvas>
-            </ScrollViewer>
+                        Height="1000">
+
+                        <Canvas
+                            Name="RootCanvas"
+                            Width="1600"
+                            Height="1000"/>
+                    </Canvas>
+                </ScrollViewer>
+
+                <Border
+                    Name="TopologyMinimapPanel"
+                    Width="252"
+                    Height="184"
+                    Margin="0,0,24,24"
+                    Padding="10"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Background="#F20B1728"
+                    BorderBrush="#3B82F6"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    BoxShadow="0 8 22 0 #99000000">
+
+                    <Grid
+                        RowDefinitions="Auto,*"
+                        RowSpacing="8">
+
+                        <Grid
+                            Grid.Row="0"
+                            ColumnDefinitions="*,Auto">
+
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Spacing="7">
+
+                                <TextBlock
+                                    Text="◈"
+                                    Foreground="#38BDF8"
+                                    FontSize="13"
+                                    VerticalAlignment="Center"/>
+
+                                <TextBlock
+                                    Text="Minimap"
+                                    Foreground="#E2E8F0"
+                                    FontWeight="SemiBold"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <Button
+                                Grid.Column="1"
+                                Content="Hide"
+                                Padding="8,2"
+                                Background="#15263D"
+                                Foreground="#94A3B8"
+                                BorderBrush="#334A68"
+                                Click="TopologyHideMinimapButton_OnClick"/>
+                        </Grid>
+
+                        <Border
+                            Grid.Row="1"
+                            Background="#07111F"
+                            BorderBrush="#223149"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            ClipToBounds="True">
+
+                            <Canvas
+                                Name="TopologyMinimapSurface"
+                                Width="228"
+                                Height="140"
+                                Background="Transparent">
+
+                                <Canvas
+                                    Name="TopologyMinimapContent"
+                                    Width="228"
+                                    Height="140"
+                                    IsHitTestVisible="False"/>
+
+                                <Rectangle
+                                    Name="TopologyMinimapViewport"
+                                    Width="40"
+                                    Height="30"
+                                    Fill="#2438BDF8"
+                                    Stroke="#38BDF8"
+                                    StrokeThickness="2"
+                                    IsHitTestVisible="False"/>
+                            </Canvas>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Button
+                    Name="TopologyShowMinimapButton"
+                    Content="◈  Map"
+                    IsVisible="False"
+                    Margin="0,0,24,24"
+                    Padding="11,6"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Background="#15263D"
+                    Foreground="#BAE6FD"
+                    BorderBrush="#3B82F6"
+                    Click="TopologyShowMinimapButton_OnClick"/>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

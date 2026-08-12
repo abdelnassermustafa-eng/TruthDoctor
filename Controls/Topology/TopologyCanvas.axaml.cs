@@ -27,11 +27,20 @@ public partial class TopologyCanvas : UserControl
     private readonly TopologyLayoutEngine _layoutEngine =
         new();
 
+    private readonly TopologyMinimapMapper _minimapMapper =
+        new();
+
     private TopologyLayoutMode _layoutMode =
         TopologyLayoutMode.Radial;
 
     private const double CanvasWidth = 1600;
     private const double CanvasHeight = 1000;
+
+    private const double MinimapWidth = 228;
+    private const double MinimapHeight = 140;
+
+    private const double TopologyNodeWidth = 160;
+    private const double TopologyNodeHeight = 70;
 
     private const double MinimumZoom = 0.35;
     private const double MaximumZoom = 2.00;
@@ -45,6 +54,10 @@ public partial class TopologyCanvas : UserControl
     private bool _isPanning;
     private Point _panStart;
     private Vector _panStartOffset;
+
+    private bool _isMinimapPanning;
+
+    private bool _isMinimapNavigationAvailable;
 
     private string _searchText = "";
 
@@ -95,6 +108,26 @@ public partial class TopologyCanvas : UserControl
 
         TopologySurface.PointerCaptureLost +=
             TopologySurface_OnPointerCaptureLost;
+
+        TopologyMinimapSurface.PointerPressed +=
+            TopologyMinimapSurface_OnPointerPressed;
+
+        TopologyMinimapSurface.PointerMoved +=
+            TopologyMinimapSurface_OnPointerMoved;
+
+        TopologyMinimapSurface.PointerReleased +=
+            TopologyMinimapSurface_OnPointerReleased;
+
+        TopologyMinimapSurface.PointerCaptureLost +=
+            TopologyMinimapSurface_OnPointerCaptureLost;
+
+        TopologyScrollViewer.ScrollChanged +=
+            (_, _) =>
+                UpdateMinimapViewport();
+
+        TopologyScrollViewer.SizeChanged +=
+            (_, _) =>
+                UpdateMinimapViewport();
 
         TopologySearchTextBox.TextChanged +=
             TopologySearchTextBox_OnTextChanged;
@@ -694,6 +727,455 @@ public partial class TopologyCanvas : UserControl
                         : "#86EFAC"));
     }
 
+
+    private void TopologyHideMinimapButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        TopologyMinimapPanel.IsVisible =
+            false;
+
+        TopologyShowMinimapButton.IsVisible =
+            true;
+    }
+
+    private void TopologyShowMinimapButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        TopologyMinimapPanel.IsVisible =
+            true;
+
+        TopologyShowMinimapButton.IsVisible =
+            false;
+
+        RenderMinimap();
+    }
+
+    private void RenderMinimap()
+    {
+        TopologyMinimapContent.Children.Clear();
+
+        if (_currentTopology.Nodes.Count == 0)
+        {
+            UpdateMinimapViewport();
+            return;
+        }
+
+        var scaleX =
+            MinimapWidth / CanvasWidth;
+
+        var scaleY =
+            MinimapHeight / CanvasHeight;
+
+        var visibleEdges =
+            CurrentVisibleEdges();
+
+        foreach (var edge in visibleEdges)
+        {
+            if (!_nodePositions.TryGetValue(
+                    edge.SourceId,
+                    out var source) ||
+                !_nodePositions.TryGetValue(
+                    edge.TargetId,
+                    out var target))
+            {
+                continue;
+            }
+
+            var isPathEdge =
+                IsActivePathEdge(edge);
+
+            var isFocusedEdge =
+                IsFocusedRelationshipEdge(edge);
+
+            var line =
+                new Line
+                {
+                    StartPoint =
+                        new Point(
+                            (
+                                source.X +
+                                TopologyNodeWidth / 2
+                            ) *
+                            scaleX,
+                            (
+                                source.Y +
+                                TopologyNodeHeight / 2
+                            ) *
+                            scaleY),
+
+                    EndPoint =
+                        new Point(
+                            (
+                                target.X +
+                                TopologyNodeWidth / 2
+                            ) *
+                            scaleX,
+                            (
+                                target.Y +
+                                TopologyNodeHeight / 2
+                            ) *
+                            scaleY),
+
+                    Stroke =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                isPathEdge
+                                    ? "#FACC15"
+                                    : isFocusedEdge
+                                        ? "#A78BFA"
+                                        : "#64748B")),
+
+                    StrokeThickness =
+                        isPathEdge ||
+                        isFocusedEdge
+                            ? 2
+                            : 0.8,
+
+                    Opacity =
+                        HasActivePath
+                            ? (
+                                isPathEdge
+                                    ? 1
+                                    : 0.16
+                            )
+                            : HasRelationshipFocus
+                                ? (
+                                    isFocusedEdge
+                                        ? 1
+                                        : 0.16
+                                )
+                                : 0.72,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+            TopologyMinimapContent.Children.Add(
+                line);
+        }
+
+        foreach (var node in
+                 _currentTopology.Nodes)
+        {
+            if (!_nodePositions.TryGetValue(
+                    node.Id,
+                    out var position))
+            {
+                continue;
+            }
+
+            var isSelected =
+                node.Id.Equals(
+                    _currentTopology.SelectedResourceId,
+                    StringComparison.OrdinalIgnoreCase);
+
+            var isPathNode =
+                IsActivePathNode(node);
+
+            var isDirect =
+                IsDirectFocusNeighbor(node);
+
+            var miniature =
+                new Rectangle
+                {
+                    Width =
+                        Math.Max(
+                            5,
+                            TopologyNodeWidth *
+                            scaleX),
+
+                    Height =
+                        Math.Max(
+                            4,
+                            TopologyNodeHeight *
+                            scaleY),
+
+                    RadiusX = 2,
+                    RadiusY = 2,
+
+                    Fill =
+                        new SolidColorBrush(
+                            Color.Parse("#49358A")),
+
+                    Stroke =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                isPathNode
+                                    ? "#FACC15"
+                                    : isSelected
+                                        ? "#FFFFFF"
+                                        : isDirect
+                                            ? "#22D3EE"
+                                            : "#8B5CF6")),
+
+                    StrokeThickness =
+                        isPathNode ||
+                        isSelected
+                            ? 1.8
+                            : 0.8,
+
+                    Opacity =
+                        ShouldKeepNodeVivid(node)
+                            ? 0.96
+                            : 0.20,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+            Canvas.SetLeft(
+                miniature,
+                position.X * scaleX);
+
+            Canvas.SetTop(
+                miniature,
+                position.Y * scaleY);
+
+            TopologyMinimapContent.Children.Add(
+                miniature);
+        }
+
+        UpdateMinimapViewport();
+    }
+
+    private void UpdateMinimapViewport()
+    {
+        if (TopologyMinimapViewport is null ||
+            TopologyScrollViewer is null)
+        {
+            return;
+        }
+
+        var viewportWidth =
+            Math.Max(
+                1,
+                TopologyScrollViewer.Bounds.Width -
+                24);
+
+        var viewportHeight =
+            Math.Max(
+                1,
+                TopologyScrollViewer.Bounds.Height -
+                24);
+
+        var projection =
+            _minimapMapper.ProjectViewport(
+                CanvasWidth,
+                CanvasHeight,
+                _zoom,
+                viewportWidth,
+                viewportHeight,
+                TopologyScrollViewer.Offset.X,
+                TopologyScrollViewer.Offset.Y,
+                MinimapWidth,
+                MinimapHeight);
+
+        _isMinimapNavigationAvailable =
+            CanvasWidth * _zoom >
+                viewportWidth + 1 ||
+            CanvasHeight * _zoom >
+                viewportHeight + 1;
+
+        var viewportRectangleWidth =
+            Math.Max(
+                4,
+                projection.Width - 2);
+
+        var viewportRectangleHeight =
+            Math.Max(
+                4,
+                projection.Height - 2);
+
+        var viewportRectangleX =
+            Math.Clamp(
+                projection.X + 1,
+                1,
+                Math.Max(
+                    1,
+                    MinimapWidth -
+                    viewportRectangleWidth -
+                    1));
+
+        var viewportRectangleY =
+            Math.Clamp(
+                projection.Y + 1,
+                1,
+                Math.Max(
+                    1,
+                    MinimapHeight -
+                    viewportRectangleHeight -
+                    1));
+
+        TopologyMinimapViewport.Width =
+            viewportRectangleWidth;
+
+        TopologyMinimapViewport.Height =
+            viewportRectangleHeight;
+
+        Canvas.SetLeft(
+            TopologyMinimapViewport,
+            viewportRectangleX);
+
+        Canvas.SetTop(
+            TopologyMinimapViewport,
+            viewportRectangleY);
+
+        TopologyMinimapSurface.Cursor =
+            new Cursor(
+                !_isMinimapNavigationAvailable
+                    ? StandardCursorType.Arrow
+                    : _isMinimapPanning
+                        ? StandardCursorType.SizeAll
+                        : StandardCursorType.Hand);
+    }
+
+    private void TopologyMinimapSurface_OnPointerPressed(
+        object? sender,
+        PointerPressedEventArgs eventArgs)
+    {
+        var point =
+            eventArgs.GetCurrentPoint(
+                TopologyMinimapSurface);
+
+        if (!point.Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        if (!_isMinimapNavigationAvailable)
+        {
+            TopologyMinimapSurface.Cursor =
+                new Cursor(
+                    StandardCursorType.Arrow);
+
+            eventArgs.Handled =
+                true;
+
+            return;
+        }
+
+        _isMinimapPanning =
+            true;
+
+        eventArgs.Pointer.Capture(
+            TopologyMinimapSurface);
+
+        TopologyMinimapSurface.Cursor =
+            new Cursor(
+                StandardCursorType.SizeAll);
+
+        NavigateFromMinimap(
+            eventArgs.GetPosition(
+                TopologyMinimapSurface));
+
+        eventArgs.Handled =
+            true;
+    }
+
+    private void TopologyMinimapSurface_OnPointerMoved(
+        object? sender,
+        PointerEventArgs eventArgs)
+    {
+        if (!_isMinimapPanning)
+        {
+            return;
+        }
+
+        NavigateFromMinimap(
+            eventArgs.GetPosition(
+                TopologyMinimapSurface));
+
+        eventArgs.Handled =
+            true;
+    }
+
+    private void TopologyMinimapSurface_OnPointerReleased(
+        object? sender,
+        PointerReleasedEventArgs eventArgs)
+    {
+        EndMinimapPanning(
+            eventArgs.Pointer);
+
+        eventArgs.Handled =
+            true;
+    }
+
+    private void TopologyMinimapSurface_OnPointerCaptureLost(
+        object? sender,
+        PointerCaptureLostEventArgs eventArgs)
+    {
+        _isMinimapPanning =
+            false;
+
+        TopologyMinimapSurface.Cursor =
+            new Cursor(
+                _isMinimapNavigationAvailable
+                    ? StandardCursorType.Hand
+                    : StandardCursorType.Arrow);
+    }
+
+    private void EndMinimapPanning(
+        IPointer pointer)
+    {
+        if (!_isMinimapPanning)
+        {
+            return;
+        }
+
+        _isMinimapPanning =
+            false;
+
+        pointer.Capture(null);
+
+        TopologyMinimapSurface.Cursor =
+            new Cursor(
+                _isMinimapNavigationAvailable
+                    ? StandardCursorType.Hand
+                    : StandardCursorType.Arrow);
+    }
+
+    private void NavigateFromMinimap(
+        Point position)
+    {
+        if (!_isMinimapNavigationAvailable)
+        {
+            return;
+        }
+
+        var viewportWidth =
+            Math.Max(
+                1,
+                TopologyScrollViewer.Bounds.Width -
+                24);
+
+        var viewportHeight =
+            Math.Max(
+                1,
+                TopologyScrollViewer.Bounds.Height -
+                24);
+
+        var offset =
+            _minimapMapper.NavigateTo(
+                position.X,
+                position.Y,
+                CanvasWidth,
+                CanvasHeight,
+                _zoom,
+                viewportWidth,
+                viewportHeight,
+                MinimapWidth,
+                MinimapHeight);
+
+        TopologyScrollViewer.Offset =
+            new Vector(
+                offset.X,
+                offset.Y);
+
+        UpdateMinimapViewport();
+    }
+
     private void TopologySurface_OnPointerWheelChanged(
         object? sender,
         PointerWheelEventArgs eventArgs)
@@ -895,6 +1377,8 @@ public partial class TopologyCanvas : UserControl
 
         TopologySurface.Height =
             CanvasHeight * _zoom;
+
+        UpdateMinimapViewport();
 
         TopologyResetZoomButton.Content =
             $"{_zoom:P0}";
@@ -1366,6 +1850,7 @@ public partial class TopologyCanvas : UserControl
                 "0 nodes · 0/0 edges";
 
             RenderEmpty();
+            RenderMinimap();
             return;
         }
 
@@ -1408,6 +1893,8 @@ public partial class TopologyCanvas : UserControl
         RenderNodes(
             topology,
             positions);
+
+        RenderMinimap();
     }
 
     private bool IsRelationshipVisible(
