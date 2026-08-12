@@ -30,6 +30,10 @@ public partial class TopologyCanvas : UserControl
     private readonly TopologyDomainFilter _domainFilter =
         new();
 
+    private readonly TopologyGroupCollapseEngine
+        _groupCollapseEngine =
+            new();
+
     private readonly TopologyGroupBoundsEngine
         _groupBoundsEngine =
             new();
@@ -58,8 +62,16 @@ public partial class TopologyCanvas : UserControl
     private TopologyView _completeTopology =
         new();
 
+    private TopologyView _domainTopology =
+        new();
+
     private TopologyView _currentTopology =
         new();
+
+    private readonly HashSet<string>
+        _collapsedDomainIds =
+            new(
+                StringComparer.OrdinalIgnoreCase);
 
     private string _selectedDomainId =
         TopologyDomainFilter.AllDomains;
@@ -285,10 +297,120 @@ public partial class TopologyCanvas : UserControl
 
     private void ApplySelectedDomain()
     {
-        _currentTopology =
+        _domainTopology =
             _domainFilter.Apply(
                 _completeTopology,
                 _selectedDomainId);
+
+        var availableDomainIds =
+            _domainFilter
+                .AvailableDomains(
+                    _domainTopology)
+                .Select(group =>
+                    group.Id)
+                .ToHashSet(
+                    StringComparer.OrdinalIgnoreCase);
+
+        _collapsedDomainIds.IntersectWith(
+            availableDomainIds);
+
+        _currentTopology =
+            _groupCollapseEngine.Project(
+                _domainTopology,
+                _collapsedDomainIds);
+    }
+
+    private TopologyGroup? FindDomainGroup(
+        string domainId)
+    {
+        return _domainFilter
+            .AvailableDomains(
+                _domainTopology)
+            .FirstOrDefault(group =>
+                group.Id.Equals(
+                    domainId,
+                    StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsDomainCollapsedInProjection(
+        string domainId)
+    {
+        return _currentTopology.Nodes.Any(node =>
+            TopologyGroupCollapseEngine
+                .IsSummaryNode(node) &&
+            node.DomainId.Equals(
+                domainId,
+                StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ToggleDomainGroup(
+        string domainId)
+    {
+        if (!_collapsedDomainIds.Remove(
+                domainId))
+        {
+            _collapsedDomainIds.Add(
+                domainId);
+        }
+
+        ApplySelectedDomain();
+        ResetStateForDomainChange();
+
+        RefreshSearchMatches(
+            preserveActiveMatch: false);
+
+        TopologyStartPathButton.IsEnabled =
+            CanStartPathFromCurrentSelection();
+
+        RenderCurrentTopology();
+        FitTopologyToViewport();
+
+        TopologyScrollViewer.Offset =
+            new Vector(0, 0);
+
+        var group =
+            FindDomainGroup(domainId);
+
+        var action =
+            IsDomainCollapsedInProjection(
+                domainId)
+                ? "Collapsed"
+                : "Expanded";
+
+        SetExportStatus(
+            $"{action}: " +
+            $"{group?.DisplayName ?? domainId}");
+    }
+
+    private void ExpandSummaryNode(
+        TopologyNode node)
+    {
+        if (!TopologyGroupCollapseEngine
+                .IsSummaryNode(node))
+        {
+            return;
+        }
+
+        _collapsedDomainIds.Remove(
+            node.DomainId);
+
+        ApplySelectedDomain();
+        ResetStateForDomainChange();
+
+        RefreshSearchMatches(
+            preserveActiveMatch: false);
+
+        TopologyStartPathButton.IsEnabled =
+            CanStartPathFromCurrentSelection();
+
+        RenderCurrentTopology();
+        FitTopologyToViewport();
+
+        TopologyScrollViewer.Offset =
+            new Vector(0, 0);
+
+        SetExportStatus(
+            $"Expanded: {node.DomainId}");
     }
 
     private void TopologyDomainComboBox_OnSelectionChanged(
@@ -324,9 +446,7 @@ public partial class TopologyCanvas : UserControl
             preserveActiveMatch: false);
 
         TopologyStartPathButton.IsEnabled =
-            _currentTopology.Nodes.Count > 0 &&
-            !string.IsNullOrWhiteSpace(
-                _currentTopology.SelectedResourceId);
+            CanStartPathFromCurrentSelection();
 
         RenderCurrentTopology();
         FitTopologyToViewport();
@@ -617,6 +737,14 @@ public partial class TopologyCanvas : UserControl
                                     ? "all"
                                     : _selectedDomainId,
 
+                            collapsedDomains =
+                                _collapsedDomainIds
+                                    .OrderBy(domainId =>
+                                        domainId,
+                                        StringComparer
+                                            .OrdinalIgnoreCase)
+                                    .ToList(),
+
                             zoom =
                                 _zoom,
 
@@ -683,6 +811,8 @@ public partial class TopologyCanvas : UserControl
 
                                     kind =
                                         edge.Kind.ToString(),
+
+                                    edge.Multiplicity,
 
                                     isPathEdge =
                                         IsActivePathEdge(
@@ -1642,6 +1772,25 @@ public partial class TopologyCanvas : UserControl
     }
 
 
+    private bool CanStartPathFromCurrentSelection()
+    {
+        if (string.IsNullOrWhiteSpace(
+                _currentTopology.SelectedResourceId))
+        {
+            return false;
+        }
+
+        var selectedNode =
+            _currentTopology.Nodes.FirstOrDefault(node =>
+                node.Id.Equals(
+                    _currentTopology.SelectedResourceId,
+                    StringComparison.OrdinalIgnoreCase));
+
+        return selectedNode is not null &&
+               !TopologyGroupCollapseEngine
+                   .IsSummaryNode(selectedNode);
+    }
+
     private void TopologyStartPathButton_OnClick(
         object? sender,
         RoutedEventArgs eventArgs)
@@ -2027,9 +2176,7 @@ public partial class TopologyCanvas : UserControl
         ApplySelectedDomain();
 
         TopologyStartPathButton.IsEnabled =
-            _currentTopology.Nodes.Count > 0 &&
-            !string.IsNullOrWhiteSpace(
-                _currentTopology.SelectedResourceId);
+            CanStartPathFromCurrentSelection();
 
         RefreshSearchMatches(
             preserveActiveMatch: true);
@@ -2292,9 +2439,38 @@ public partial class TopologyCanvas : UserControl
             RootCanvas.Children.Add(
                 boundary);
 
-            var label =
-                new Border
+            var group =
+                FindDomainGroup(
+                    bounds.GroupId);
+
+            var displayName =
+                group?.DisplayName ??
+                bounds.DisplayName;
+
+            var resourceCount =
+                group?.Count ??
+                bounds.NodeCount;
+
+            var isCollapsed =
+                IsDomainCollapsedInProjection(
+                    bounds.GroupId);
+
+            var headerText =
+                isCollapsed
+                    ? $"▸  {displayName} · " +
+                      $"{resourceCount} · Expand"
+                    : $"▾  {displayName} · " +
+                      $"{resourceCount} · Collapse";
+
+            var groupId =
+                bounds.GroupId;
+
+            var header =
+                new Button
                 {
+                    Content =
+                        headerText,
+
                     Padding =
                         new Thickness(
                             10,
@@ -2303,6 +2479,11 @@ public partial class TopologyCanvas : UserControl
                     Background =
                         new SolidColorBrush(
                             Color.Parse("#F20B1728")),
+
+                    Foreground =
+                        new SolidColorBrush(
+                            Color.Parse(
+                                colors.Text)),
 
                     BorderBrush =
                         new SolidColorBrush(
@@ -2315,38 +2496,40 @@ public partial class TopologyCanvas : UserControl
                     CornerRadius =
                         new CornerRadius(7),
 
-                    IsHitTestVisible =
-                        false,
+                    FontSize = 11,
 
-                    Child =
-                        new TextBlock
-                        {
-                            Text =
-                                $"{bounds.DisplayName}  ·  " +
-                                $"{bounds.NodeCount}",
+                    FontWeight =
+                        FontWeight.SemiBold,
 
-                            FontSize = 11,
+                    IsEnabled =
+                        true,
 
-                            FontWeight =
-                                FontWeight.SemiBold,
-
-                            Foreground =
-                                new SolidColorBrush(
-                                    Color.Parse(
-                                        colors.Text))
-                        }
+                    Cursor =
+                        new Cursor(
+                            StandardCursorType.Hand)
                 };
 
+            header.SetValue(
+                ToolTip.TipProperty,
+                isCollapsed
+                    ? $"Expand {displayName}"
+                    : $"Collapse {displayName}");
+
+            header.Click +=
+                (_, _) =>
+                    ToggleDomainGroup(
+                        groupId);
+
             Canvas.SetLeft(
-                label,
+                header,
                 bounds.X + 12);
 
             Canvas.SetTop(
-                label,
+                header,
                 bounds.Y + 8);
 
             RootCanvas.Children.Add(
-                label);
+                header);
         }
     }
 
@@ -2765,6 +2948,12 @@ public partial class TopologyCanvas : UserControl
         IBrush edgeBrush,
         double edgeOpacity)
     {
+        var relationshipLabel =
+            edge.Multiplicity > 1
+                ? $"{edge.Relationship} ×" +
+                  $"{edge.Multiplicity}"
+                : edge.Relationship;
+
         var labelFraction =
             edgeIndex % 3 switch
             {
@@ -2822,7 +3011,7 @@ public partial class TopologyCanvas : UserControl
         var estimatedWidth =
             Math.Max(
                 64,
-                (edge.Relationship.Length * 6.5) + 16);
+                (relationshipLabel.Length * 6.5) + 16);
 
         var label =
             new Border
@@ -2854,7 +3043,7 @@ public partial class TopologyCanvas : UserControl
                     new TextBlock
                     {
                         Text =
-                            edge.Relationship,
+                            relationshipLabel,
 
                         FontSize = 11,
 
@@ -3477,9 +3666,32 @@ public partial class TopologyCanvas : UserControl
                                 : 1)
                 };
 
+            var isSummaryNode =
+                TopologyGroupCollapseEngine
+                    .IsSummaryNode(node);
+
             border.Cursor =
                 new Cursor(
                     StandardCursorType.Hand);
+
+            if (isSummaryNode)
+            {
+                var colors =
+                    DomainGroupColors(
+                        node.DomainId);
+
+                border.Background =
+                    new SolidColorBrush(
+                        Color.Parse("#F21B1538"));
+
+                border.BorderBrush =
+                    new SolidColorBrush(
+                        Color.Parse(
+                            colors.Stroke));
+
+                border.BorderThickness =
+                    new Thickness(3);
+            }
 
             var panel =
                 new StackPanel
@@ -3487,11 +3699,30 @@ public partial class TopologyCanvas : UserControl
                     Spacing = 4
                 };
 
+            if (isSummaryNode)
+            {
+                panel.Children.Add(
+                    new TextBlock
+                    {
+                        Text =
+                            "▸  COLLAPSED DOMAIN",
+
+                        FontSize = 10,
+
+                        FontWeight =
+                            FontWeight.Bold,
+
+                        Foreground =
+                            new SolidColorBrush(
+                                Color.Parse("#22D3EE"))
+                    });
+            }
+
             panel.Children.Add(
                 new TextBlock
                 {
                     Text =
-                        $"{visual.Icon}  " +
+                        $"{(isSummaryNode ? "◫" : visual.Icon)}  " +
                         node.DisplayName,
 
                     FontWeight =
@@ -3673,6 +3904,13 @@ public partial class TopologyCanvas : UserControl
             border.PointerPressed +=
                 (_, eventArgs) =>
                 {
+                    if (isSummaryNode)
+                    {
+                        ExpandSummaryNode(node);
+                        eventArgs.Handled = true;
+                        return;
+                    }
+
                     if (_isPathSelectionMode)
                     {
                         if (node.Id.Equals(
