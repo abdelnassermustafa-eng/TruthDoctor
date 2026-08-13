@@ -119,6 +119,15 @@ public partial class UniversalWorkbenchWindow : Window
         _savedViewLoadResult =
             _savedViews.Load();
 
+        UpdateSavedViewControls();
+
+        TopologyWorkspace.SaveViewRequested +=
+            async () =>
+                await SaveCurrentTopologyViewAsync();
+
+        TopologyWorkspace.LoadViewRequested +=
+            LoadTopologySavedView;
+
         TopologyWorkspace.NodeInvoked += node =>
         {
             var graphNode =
@@ -908,6 +917,184 @@ public partial class UniversalWorkbenchWindow : Window
     private string? GetSelectedLocation()
     {
         return LocationComboBox.SelectedItem?.ToString();
+    }
+
+    private async Task SaveCurrentTopologyViewAsync()
+    {
+        var dialog =
+            new TruthDoctor.Views.Dialogs
+                .TopologySavedViewNameDialog(
+                    "Save topology view",
+                    "Enter a unique name for the current topology workspace.",
+                    "Save");
+
+        var name =
+            await dialog.ShowDialog<string?>(
+                this);
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        try
+        {
+            var timestamp =
+                DateTimeOffset.UtcNow;
+
+            var view =
+                TopologyWorkspace.CaptureSavedView(
+                    Guid.NewGuid().ToString("N"),
+                    name,
+                    timestamp,
+                    timestamp);
+
+            _savedViews.Add(
+                view);
+
+            UpdateSavedViewControls(
+                view.Id,
+                $"Saved '{view.Name}'.");
+        }
+        catch (Exception exception)
+        {
+            UpdateSavedViewControls(
+                message:
+                    $"Unable to save view: {exception.Message}",
+                isError: true);
+        }
+    }
+
+    private void LoadTopologySavedView(
+        string savedViewId)
+    {
+        if (string.IsNullOrWhiteSpace(
+                savedViewId))
+        {
+            UpdateSavedViewControls(
+                message:
+                    "Select a saved view before loading.",
+                isError: true);
+
+            return;
+        }
+
+        var normalizedId =
+            savedViewId.Trim();
+
+        var view =
+            _savedViews.Find(
+                normalizedId);
+
+        if (view is null)
+        {
+            UpdateSavedViewControls(
+                message:
+                    "The selected saved view is no longer available.",
+                isError: true);
+
+            return;
+        }
+
+        try
+        {
+            var summary =
+                RestoreTopologySavedView(
+                    view);
+
+            UpdateSavedViewControls(
+                view.Id,
+                BuildSavedViewLoadMessage(
+                    view,
+                    summary));
+        }
+        catch (Exception exception)
+        {
+            UpdateSavedViewControls(
+                view.Id,
+                $"Unable to load view: {exception.Message}",
+                isError: true);
+        }
+    }
+
+    private static string BuildSavedViewLoadMessage(
+        TopologySavedView view,
+        TopologySavedViewWorkbenchRestoreSummary summary)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        ArgumentNullException.ThrowIfNull(summary);
+
+        if (!summary.UsedFallback)
+        {
+            return $"Loaded '{view.Name}'.";
+        }
+
+        var adjustments =
+            new List<string>();
+
+        if (summary.ResourceWasUnavailable)
+        {
+            adjustments.Add(
+                "selected resource was unavailable");
+        }
+
+        if (summary.DomainFellBackToAll)
+        {
+            adjustments.Add(
+                "domain changed to All domains");
+        }
+
+        if (summary.IgnoredCollapsedDomainCount > 0)
+        {
+            var count =
+                summary.IgnoredCollapsedDomainCount;
+
+            adjustments.Add(
+                count == 1
+                    ? "1 unavailable collapsed domain was ignored"
+                    : $"{count} unavailable collapsed domains were ignored");
+        }
+
+        return
+            $"Loaded '{view.Name}' with adjustments: " +
+            $"{string.Join("; ", adjustments)}.";
+    }
+
+    private void UpdateSavedViewControls(
+        string? selectedViewId = null,
+        string? message = null,
+        bool isError = false)
+    {
+        TopologyWorkspace.SetSavedViews(
+            _savedViews.All,
+            selectedViewId);
+
+        UpdateSavedViewStatus(
+            message,
+            isError);
+    }
+
+    private void UpdateSavedViewStatus(
+        string? message = null,
+        bool isError = false)
+    {
+        var count =
+            _savedViews.All.Count;
+
+        var status =
+            message ??
+            (
+                count == 0
+                    ? "No saved views"
+                    : count == 1
+                        ? "1 saved view"
+                        : $"{count} saved views"
+            );
+
+        TopologyWorkspace.SetSavedViewStatus(
+            count,
+            status,
+            isError);
     }
 
     public IReadOnlyList<TopologySavedView>

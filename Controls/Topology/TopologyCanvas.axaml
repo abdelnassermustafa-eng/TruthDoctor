@@ -9,7 +9,7 @@
         BorderThickness="1"
         CornerRadius="8">
 
-        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
 
             <Border
                 Grid.Row="0"
@@ -309,6 +309,87 @@
 
                 <Grid
                     RowDefinitions="Auto,Auto"
+                    ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+                    ColumnSpacing="8"
+                    RowSpacing="4">
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Text="Saved views"
+                        FontWeight="SemiBold"
+                        Foreground="#E2E8F0"
+                        VerticalAlignment="Center"/>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Name="TopologySavedViewCountText"
+                        Text="0"
+                        MinWidth="24"
+                        Padding="7,2"
+                        Background="#15263D"
+                        Foreground="#BAE6FD"
+                        TextAlignment="Center"
+                        VerticalAlignment="Center"/>
+
+                    <ComboBox
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Name="TopologySavedViewComboBox"
+                        MinWidth="180"
+                        MaxDropDownHeight="320"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="TopologySavedViewComboBox_OnSelectionChanged">
+
+                        <ComboBoxItem
+                            Content="Select a saved view..."
+                            Tag=""
+                            IsEnabled="False"/>
+                    </ComboBox>
+
+                    <Button
+                        Grid.Row="0"
+                        Grid.Column="3"
+                        Name="TopologyLoadViewButton"
+                        Content="Load"
+                        MinWidth="68"
+                        Padding="12,5"
+                        IsEnabled="False"
+                        Click="TopologyLoadViewButton_OnClick"/>
+
+                    <Button
+                        Grid.Row="0"
+                        Grid.Column="4"
+                        Name="TopologySaveViewButton"
+                        Content="Save view"
+                        Padding="12,5"
+                        Background="#0F766E"
+                        Foreground="White"
+                        BorderBrush="#14B8A6"
+                        Click="TopologySaveViewButton_OnClick"/>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Grid.ColumnSpan="3"
+                        Name="TopologySavedViewStatusText"
+                        Text="No saved views"
+                        Foreground="#7F9AB8"
+                        TextTrimming="CharacterEllipsis"
+                        VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Row="3"
+                Padding="10,7"
+                Background="#0B1728"
+                BorderBrush="#223149"
+                BorderThickness="0,0,0,1">
+
+                <Grid
+                    RowDefinitions="Auto,Auto"
                     RowSpacing="8">
 
                     <Grid
@@ -380,7 +461,7 @@
             </Border>
 
             <Border
-                Grid.Row="3"
+                Grid.Row="4"
                 Padding="10,6"
                 Background="#0D1B30"
                 BorderBrush="#223149"
@@ -493,7 +574,7 @@
             </Border>
 
             <Grid
-                Grid.Row="4">
+                Grid.Row="5">
 
                 <ScrollViewer
                     Name="TopologyScrollViewer"

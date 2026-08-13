@@ -121,6 +121,10 @@ public partial class TopologyCanvas : UserControl
 
     public event Action<string, string>? PathRequested;
 
+    public event Action? SaveViewRequested;
+
+    public event Action<string>? LoadViewRequested;
+
     public TopologyCanvas()
     {
         InitializeComponent();
@@ -174,6 +178,144 @@ public partial class TopologyCanvas : UserControl
 
         ApplyZoom();
         UpdateSearchControls();
+    }
+
+    private void TopologySaveViewButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        SaveViewRequested?.Invoke();
+    }
+
+    private void TopologySavedViewComboBox_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs eventArgs)
+    {
+        TopologyLoadViewButton.IsEnabled =
+            SelectedSavedViewId() is not null;
+    }
+
+    private void TopologyLoadViewButton_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        var savedViewId =
+            SelectedSavedViewId();
+
+        if (savedViewId is null)
+        {
+            return;
+        }
+
+        LoadViewRequested?.Invoke(
+            savedViewId);
+    }
+
+    private string? SelectedSavedViewId()
+    {
+        if (TopologySavedViewComboBox.SelectedItem is not
+            ComboBoxItem item)
+        {
+            return null;
+        }
+
+        var savedViewId =
+            item.Tag?.ToString()?.Trim();
+
+        return string.IsNullOrWhiteSpace(
+                savedViewId)
+            ? null
+            : savedViewId;
+    }
+
+    public void SetSavedViews(
+        IReadOnlyList<TopologySavedView> views,
+        string? selectedViewId = null)
+    {
+        ArgumentNullException.ThrowIfNull(views);
+
+        var requestedSelection =
+            selectedViewId?.Trim();
+
+        TopologySavedViewComboBox.Items.Clear();
+
+        var placeholder =
+            new ComboBoxItem
+            {
+                Content =
+                    views.Count == 0
+                        ? "No saved views"
+                        : "Select a saved view...",
+
+                Tag = "",
+                IsEnabled = false
+            };
+
+        TopologySavedViewComboBox.Items.Add(
+            placeholder);
+
+        ComboBoxItem? selectedItem =
+            null;
+
+        foreach (var view in views)
+        {
+            ArgumentNullException.ThrowIfNull(
+                view);
+
+            var item =
+                new ComboBoxItem
+                {
+                    Content = view.Name,
+                    Tag = view.Id
+                };
+
+            TopologySavedViewComboBox.Items.Add(
+                item);
+
+            if (!string.IsNullOrWhiteSpace(
+                    requestedSelection) &&
+                view.Id.Equals(
+                    requestedSelection,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                selectedItem =
+                    item;
+            }
+        }
+
+        TopologySavedViewComboBox.SelectedItem =
+            selectedItem ??
+            placeholder;
+
+        TopologyLoadViewButton.IsEnabled =
+            selectedItem is not null;
+    }
+
+    public void SetSavedViewStatus(
+        int savedViewCount,
+        string message,
+        bool isError = false)
+    {
+        if (savedViewCount < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(savedViewCount));
+        }
+
+        ArgumentNullException.ThrowIfNull(message);
+
+        TopologySavedViewCountText.Text =
+            savedViewCount.ToString();
+
+        TopologySavedViewStatusText.Text =
+            message;
+
+        TopologySavedViewStatusText.Foreground =
+            new SolidColorBrush(
+                Color.Parse(
+                    isError
+                        ? "#F87171"
+                        : "#7F9AB8"));
     }
 
     private void TopologyZoomOutButton_OnClick(

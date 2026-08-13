@@ -1,0 +1,80 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="TruthDoctor.Views.Dialogs.TopologySavedViewNameDialog"
+    Width="430"
+    Height="235"
+    MinWidth="390"
+    MinHeight="220"
+    CanResize="False"
+    WindowStartupLocation="CenterOwner"
+    Title="Save topology view">
+
+    <Border
+        Padding="20"
+        Background="#0F172A">
+
+        <Grid
+            RowDefinitions="Auto,Auto,Auto,*,Auto"
+            RowSpacing="10">
+
+            <TextBlock
+                Grid.Row="0"
+                Name="DialogTitleText"
+                Text="Save topology view"
+                FontSize="18"
+                FontWeight="SemiBold"
+                Foreground="#F8FAFC"/>
+
+            <TextBlock
+                Grid.Row="1"
+                Name="DialogPromptText"
+                Text="Enter a unique name for this topology workspace."
+                Foreground="#94A3B8"
+                TextWrapping="Wrap"/>
+
+            <TextBox
+                Grid.Row="2"
+                Name="SavedViewNameTextBox"
+                Height="36"
+                MaxLength="100"
+                Watermark="Saved view name"
+                TextChanged="SavedViewNameTextBox_OnTextChanged"/>
+
+            <TextBlock
+                Grid.Row="3"
+                Name="ValidationText"
+                Text=""
+                Foreground="#F87171"
+                TextWrapping="Wrap"
+                IsVisible="False"/>
+
+            <StackPanel
+                Grid.Row="4"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Spacing="10">
+
+                <Button
+                    Name="CancelButton"
+                    Content="Cancel"
+                    MinWidth="88"
+                    Padding="12,6"
+                    IsCancel="True"
+                    Click="CancelButton_OnClick"/>
+
+                <Button
+                    Name="AcceptButton"
+                    Content="Save"
+                    MinWidth="88"
+                    Padding="12,6"
+                    Background="#0F766E"
+                    Foreground="White"
+                    BorderBrush="#14B8A6"
+                    IsDefault="True"
+                    IsEnabled="False"
+                    Click="AcceptButton_OnClick"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
