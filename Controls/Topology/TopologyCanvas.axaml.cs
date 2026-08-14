@@ -125,6 +125,10 @@ public partial class TopologyCanvas : UserControl
 
     public event Action<string>? LoadViewRequested;
 
+    public event Action<string>? RenameViewRequested;
+
+    public event Action<string>? DeleteViewRequested;
+
     public TopologyCanvas()
     {
         InitializeComponent();
@@ -191,8 +195,14 @@ public partial class TopologyCanvas : UserControl
         object? sender,
         SelectionChangedEventArgs eventArgs)
     {
-        TopologyLoadViewButton.IsEnabled =
+        var hasSelection =
             SelectedSavedViewId() is not null;
+
+        TopologyLoadViewButton.IsEnabled =
+            hasSelection;
+
+        TopologyManageViewButton.IsEnabled =
+            hasSelection;
     }
 
     private void TopologyLoadViewButton_OnClick(
@@ -208,6 +218,38 @@ public partial class TopologyCanvas : UserControl
         }
 
         LoadViewRequested?.Invoke(
+            savedViewId);
+    }
+
+    private void TopologyRenameViewMenuItem_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        var savedViewId =
+            SelectedSavedViewId();
+
+        if (savedViewId is null)
+        {
+            return;
+        }
+
+        RenameViewRequested?.Invoke(
+            savedViewId);
+    }
+
+    private void TopologyDeleteViewMenuItem_OnClick(
+        object? sender,
+        RoutedEventArgs eventArgs)
+    {
+        var savedViewId =
+            SelectedSavedViewId();
+
+        if (savedViewId is null)
+        {
+            return;
+        }
+
+        DeleteViewRequested?.Invoke(
             savedViewId);
     }
 
@@ -287,8 +329,14 @@ public partial class TopologyCanvas : UserControl
             selectedItem ??
             placeholder;
 
-        TopologyLoadViewButton.IsEnabled =
+        var hasSelection =
             selectedItem is not null;
+
+        TopologyLoadViewButton.IsEnabled =
+            hasSelection;
+
+        TopologyManageViewButton.IsEnabled =
+            hasSelection;
     }
 
     public void SetSavedViewStatus(

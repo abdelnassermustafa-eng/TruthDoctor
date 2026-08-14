@@ -128,6 +128,16 @@ public partial class UniversalWorkbenchWindow : Window
         TopologyWorkspace.LoadViewRequested +=
             LoadTopologySavedView;
 
+        TopologyWorkspace.RenameViewRequested +=
+            async savedViewId =>
+                await RenameTopologySavedViewAsync(
+                    savedViewId);
+
+        TopologyWorkspace.DeleteViewRequested +=
+            async savedViewId =>
+                await DeleteTopologySavedViewAsync(
+                    savedViewId);
+
         TopologyWorkspace.NodeInvoked += node =>
         {
             var graphNode =
@@ -961,6 +971,154 @@ public partial class UniversalWorkbenchWindow : Window
             UpdateSavedViewControls(
                 message:
                     $"Unable to save view: {exception.Message}",
+                isError: true);
+        }
+    }
+
+    private async Task DeleteTopologySavedViewAsync(
+        string savedViewId)
+    {
+        if (string.IsNullOrWhiteSpace(
+                savedViewId))
+        {
+            UpdateSavedViewControls(
+                message:
+                    "Select a saved view before deleting.",
+                isError: true);
+
+            return;
+        }
+
+        var normalizedId =
+            savedViewId.Trim();
+
+        var existing =
+            _savedViews.Find(
+                normalizedId);
+
+        if (existing is null)
+        {
+            UpdateSavedViewControls(
+                message:
+                    "The selected saved view is no longer available.",
+                isError: true);
+
+            return;
+        }
+
+        var dialog =
+            new ConfirmDialog(
+                $"Delete saved view '{existing.Name}'?\n\n" +
+                "The displayed topology will remain open.");
+
+        await dialog.ShowDialog(
+            this);
+
+        if (!dialog.Result)
+        {
+            UpdateSavedViewControls(
+                existing.Id,
+                $"Deletion cancelled for '{existing.Name}'.");
+
+            return;
+        }
+
+        try
+        {
+            var deleted =
+                _savedViews.Delete(
+                    existing.Id);
+
+            if (!deleted)
+            {
+                UpdateSavedViewControls(
+                    message:
+                        "The selected saved view is no longer available.",
+                    isError: true);
+
+                return;
+            }
+
+            UpdateSavedViewControls(
+                message:
+                    $"Deleted saved view '{existing.Name}'. " +
+                    "Displayed topology remains open.");
+        }
+        catch (Exception exception)
+        {
+            UpdateSavedViewControls(
+                existing.Id,
+                $"Unable to delete view: {exception.Message}",
+                isError: true);
+        }
+    }
+
+    private async Task RenameTopologySavedViewAsync(
+        string savedViewId)
+    {
+        if (string.IsNullOrWhiteSpace(
+                savedViewId))
+        {
+            UpdateSavedViewControls(
+                message:
+                    "Select a saved view before renaming.",
+                isError: true);
+
+            return;
+        }
+
+        var normalizedId =
+            savedViewId.Trim();
+
+        var existing =
+            _savedViews.Find(
+                normalizedId);
+
+        if (existing is null)
+        {
+            UpdateSavedViewControls(
+                message:
+                    "The selected saved view is no longer available.",
+                isError: true);
+
+            return;
+        }
+
+        var dialog =
+            new TruthDoctor.Views.Dialogs
+                .TopologySavedViewNameDialog(
+                    "Rename topology view",
+                    "Enter a new unique name for this saved topology view.",
+                    "Rename",
+                    existing.Name);
+
+        var newName =
+            await dialog.ShowDialog<string?>(
+                this);
+
+        if (string.IsNullOrWhiteSpace(
+                newName))
+        {
+            return;
+        }
+
+        try
+        {
+            var renamed =
+                _savedViews.Rename(
+                    existing.Id,
+                    newName,
+                    DateTimeOffset.UtcNow);
+
+            UpdateSavedViewControls(
+                renamed.Id,
+                $"Renamed saved view to '{renamed.Name}'.");
+        }
+        catch (Exception exception)
+        {
+            UpdateSavedViewControls(
+                existing.Id,
+                $"Unable to rename view: {exception.Message}",
                 isError: true);
         }
     }

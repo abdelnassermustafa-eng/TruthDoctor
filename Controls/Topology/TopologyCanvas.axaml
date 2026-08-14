@@ -309,7 +309,7 @@
 
                 <Grid
                     RowDefinitions="Auto,Auto"
-                    ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+                    ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
                     ColumnSpacing="8"
                     RowSpacing="4">
 
@@ -369,10 +369,36 @@
                         BorderBrush="#14B8A6"
                         Click="TopologySaveViewButton_OnClick"/>
 
+                    <Button
+                        Grid.Row="0"
+                        Grid.Column="5"
+                        Name="TopologyManageViewButton"
+                        Content="Manage ▾"
+                        MinWidth="86"
+                        Padding="12,5"
+                        IsEnabled="False">
+
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuItem
+                                    Name="TopologyRenameViewMenuItem"
+                                    Header="Rename…"
+                                    Click="TopologyRenameViewMenuItem_OnClick"/>
+
+                                <Separator/>
+
+                                <MenuItem
+                                    Name="TopologyDeleteViewMenuItem"
+                                    Header="Delete…"
+                                    Click="TopologyDeleteViewMenuItem_OnClick"/>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="2"
-                        Grid.ColumnSpan="3"
+                        Grid.ColumnSpan="4"
                         Name="TopologySavedViewStatusText"
                         Text="No saved views"
                         Foreground="#7F9AB8"
