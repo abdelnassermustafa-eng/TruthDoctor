@@ -658,7 +658,7 @@ public partial class UniversalWorkbenchWindow : Window
         var resources =
             _state.Resources
                 .Where(resource =>
-                    MatchesResourceSearch(
+                    InfrastructureResourceSearch.Matches(
                         resource,
                         search))
                 .OrderBy(resource =>
@@ -678,65 +678,6 @@ public partial class UniversalWorkbenchWindow : Window
         SecondaryWorkspaceDescription.Text =
             $"{resources.Count} of " +
             $"{_state.TotalResourceCount} resources";
-    }
-
-    private static bool MatchesResourceSearch(
-        InfrastructureResource resource,
-        string search)
-    {
-        if (string.IsNullOrWhiteSpace(search))
-        {
-            return true;
-        }
-
-        return ContainsSearch(
-                   resource.DisplayName,
-                   search) ||
-               ContainsSearch(
-                   resource.NativeId,
-                   search) ||
-               ContainsSearch(
-                   resource.ResourceId,
-                   search) ||
-               ContainsSearch(
-                   resource.ResourceType,
-                   search) ||
-               ContainsSearch(
-                   resource.DomainId,
-                   search) ||
-               ContainsSearch(
-                   resource.State,
-                   search) ||
-               ContainsSearch(
-                   resource.Location,
-                   search) ||
-               ContainsSearch(
-                   resource.AccountId,
-                   search) ||
-               resource.Properties.Any(item =>
-                   ContainsSearch(
-                       item.Key,
-                       search) ||
-                   ContainsSearch(
-                       item.Value,
-                       search)) ||
-               resource.Tags.Any(item =>
-                   ContainsSearch(
-                       item.Key,
-                       search) ||
-                   ContainsSearch(
-                       item.Value,
-                       search));
-    }
-
-    private static bool ContainsSearch(
-        string? value,
-        string search)
-    {
-        return value?.Contains(
-                   search,
-                   StringComparison.OrdinalIgnoreCase)
-               == true;
     }
 
     private void SetLoadingState()

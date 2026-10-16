@@ -39,13 +39,9 @@ public sealed class WorkbenchResourceController
         if (!string.IsNullOrWhiteSpace(_state.SearchText))
         {
             query = query.Where(resource =>
-                Contains(resource.DisplayName, _state.SearchText) ||
-                Contains(resource.NativeId, _state.SearchText) ||
-                Contains(resource.ResourceType, _state.SearchText) ||
-                Contains(resource.DomainId, _state.SearchText) ||
-                Contains(resource.State, _state.SearchText) ||
-                Contains(resource.Location, _state.SearchText) ||
-                Contains(resource.AccountId, _state.SearchText));
+                InfrastructureResourceSearch.Matches(
+                    resource,
+                    _state.SearchText));
         }
 
         if (!string.IsNullOrWhiteSpace(domainDisplayName) &&
