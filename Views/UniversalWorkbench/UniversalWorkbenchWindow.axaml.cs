@@ -237,6 +237,41 @@ public partial class UniversalWorkbenchWindow : Window
                 return;
             }
 
+            if (_workbenchState.CurrentView.Equals(
+                    "topology",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                var resources =
+                    _workbenchState.PlatformState?.Resources;
+
+                if (resources is null ||
+                    resources.Count == 0)
+                {
+                    TopologyWorkspace.SetSearchText(
+                        search);
+
+                    return;
+                }
+
+                var resource =
+                    InfrastructureResourceSearchResolver
+                        .ResolveUnique(
+                            resources,
+                            search);
+
+                if (resource is not null)
+                {
+                    _topology.NavigateTo(resource);
+
+                    RenderTopologySelection();
+                }
+
+                TopologyWorkspace.SetSearchText(
+                    search);
+
+                return;
+            }
+
             ResourceSearchTextBox.Text = search;
             ApplyFilters();
         };

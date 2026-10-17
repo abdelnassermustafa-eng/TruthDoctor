@@ -2145,6 +2145,24 @@ public partial class TopologyCanvas : UserControl
             canGoHome;
     }
 
+    public void SetSearchText(
+        string? searchText)
+    {
+        var normalizedSearchText =
+            searchText?.Trim() ?? "";
+
+        if (string.Equals(
+                TopologySearchTextBox.Text ?? "",
+                normalizedSearchText,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        TopologySearchTextBox.Text =
+            normalizedSearchText;
+    }
+
     private void TopologyBackButton_OnClick(
         object? sender,
         RoutedEventArgs eventArgs)
