@@ -66,6 +66,7 @@ public partial class UniversalWorkbenchWindow : Window
 
     private PlatformState? _state;
     private List<InfrastructureResource> _visibleResources = [];
+    private string _globalSearchText = "";
 
     public UniversalWorkbenchWindow()
     {
@@ -227,53 +228,8 @@ public partial class UniversalWorkbenchWindow : Window
 
         TopBar.SearchChanged += (_, search) =>
         {
-            if (_workbenchState.CurrentView.Equals(
-                    "resources",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                SecondaryWorkspaceSearchTextBox.Text =
-                    search;
-
-                return;
-            }
-
-            if (_workbenchState.CurrentView.Equals(
-                    "topology",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                var resources =
-                    _workbenchState.PlatformState?.Resources;
-
-                if (resources is null ||
-                    resources.Count == 0)
-                {
-                    TopologyWorkspace.SetSearchText(
-                        search);
-
-                    return;
-                }
-
-                var resource =
-                    InfrastructureResourceSearchResolver
-                        .ResolveUnique(
-                            resources,
-                            search);
-
-                if (resource is not null)
-                {
-                    _topology.NavigateTo(resource);
-
-                    RenderTopologySelection();
-                }
-
-                TopologyWorkspace.SetSearchText(
-                    search);
-
-                return;
-            }
-
-            ResourceSearchTextBox.Text = search;
-            ApplyFilters();
+            _globalSearchText = search;
+            RouteGlobalSearch(search);
         };
 
         TopBar.LocationChanged += async (_, location) =>
@@ -1313,6 +1269,73 @@ public partial class UniversalWorkbenchWindow : Window
         if (isResources)
         {
             RenderSecondaryResources();
+        }
+
+        RouteGlobalSearch(
+            _globalSearchText);
+    }
+
+    private void RouteGlobalSearch(
+        string search)
+    {
+        var route =
+            WorkbenchGlobalSearchCoordinator.Resolve(
+                _workbenchState.CurrentView);
+
+        switch (route)
+        {
+            case WorkbenchGlobalSearchRoute.Dashboard:
+
+                ResourceSearchTextBox.Text = search;
+                ApplyFilters();
+                return;
+
+            case WorkbenchGlobalSearchRoute.Resources:
+
+                SecondaryWorkspaceSearchTextBox.Text =
+                    search;
+
+                return;
+
+            case WorkbenchGlobalSearchRoute.Topology:
+
+                var resources =
+                    _workbenchState.PlatformState?.Resources;
+
+                if (resources is null ||
+                    resources.Count == 0)
+                {
+                    TopologyWorkspace.SetSearchText(
+                        search);
+
+                    return;
+                }
+
+                var resource =
+                    InfrastructureResourceSearchResolver
+                        .ResolveUnique(
+                            resources,
+                            search);
+
+                if (resource is not null)
+                {
+                    _topology.NavigateTo(resource);
+
+                    RenderTopologySelection();
+                }
+
+                TopologyWorkspace.SetSearchText(
+                    search);
+
+                return;
+
+            case WorkbenchGlobalSearchRoute.Operations:
+            case WorkbenchGlobalSearchRoute.History:
+            case WorkbenchGlobalSearchRoute.Reports:
+            case WorkbenchGlobalSearchRoute.Settings:
+            case WorkbenchGlobalSearchRoute.Unknown:
+            default:
+                return;
         }
     }
 
