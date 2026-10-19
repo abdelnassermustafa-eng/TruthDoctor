@@ -671,6 +671,104 @@ public partial class UniversalWorkbenchWindow : Window
             $"{_state.TotalResourceCount} resources";
     }
 
+    private ListBoxItem CreateOperationsSearchRow(
+        WorkbenchOperationsSearchMatch match)
+    {
+        var resource =
+            match.Resource;
+
+        var panel =
+            new StackPanel
+            {
+                Spacing = 3
+            };
+
+        panel.Children.Add(
+            new TextBlock
+            {
+                Text =
+                    match.DisplayText,
+
+                FontWeight =
+                    FontWeight.SemiBold,
+
+                Foreground =
+                    Brush("#F8FAFC")
+            });
+
+        var context =
+            match.Kind ==
+            WorkbenchOperationsSearchMatchKind.Capability
+                ? resource is null
+                    ? "Capability"
+                    : $"Capability · {resource.DisplayName}"
+                : resource is null
+                    ? match.Kind.ToString()
+                    : $"{match.Kind} · " +
+                      $"{resource.ResourceType} · " +
+                      $"{resource.State}";
+
+        panel.Children.Add(
+            new TextBlock
+            {
+                Text =
+                    context,
+
+                FontSize =
+                    10,
+
+                Foreground =
+                    Brush("#94A3B8")
+            });
+
+        return new ListBoxItem
+        {
+            Content =
+                panel,
+
+            Tag =
+                resource,
+
+            Padding =
+                new Thickness(8)
+        };
+    }
+
+    private void RenderOperationsSearch(
+        string? searchText)
+    {
+        SecondaryWorkspaceList.Items.Clear();
+
+        if (_state is null)
+        {
+            SecondaryWorkspaceDescription.Text =
+                "No infrastructure state is loaded.";
+
+            return;
+        }
+
+        var results =
+            WorkbenchOperationsSearch.Search(
+                _state.Resources,
+                searchText);
+
+        foreach (var result in results)
+        {
+            SecondaryWorkspaceList.Items.Add(
+                CreateOperationsSearchRow(
+                    result));
+        }
+
+        SecondaryWorkspaceDescription.Text =
+            string.IsNullOrWhiteSpace(searchText)
+                ? results.Count == 1
+                    ? "1 searchable resource"
+                    : $"{results.Count} searchable resources"
+                : results.Count == 1
+                    ? "1 operations search result"
+                    : $"{results.Count} operations search results";
+    }
+
     private void SetLoadingState()
     {
         _status.ApplyLoading(
@@ -1330,6 +1428,12 @@ public partial class UniversalWorkbenchWindow : Window
                 return;
 
             case WorkbenchGlobalSearchRoute.Operations:
+
+                RenderOperationsSearch(
+                    search);
+
+                return;
+
             case WorkbenchGlobalSearchRoute.History:
             case WorkbenchGlobalSearchRoute.Reports:
             case WorkbenchGlobalSearchRoute.Settings:
