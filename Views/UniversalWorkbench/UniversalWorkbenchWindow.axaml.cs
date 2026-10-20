@@ -49,6 +49,9 @@ public partial class UniversalWorkbenchWindow : Window
     private readonly WorkbenchTopologyController
         _topology;
 
+    private readonly WorkbenchCrossWorkspaceNavigationCoordinator
+        _crossWorkspaceNavigation = new();
+
     private readonly WorkbenchStatusController
         _status;
 
@@ -1310,6 +1313,13 @@ public partial class UniversalWorkbenchWindow : Window
                 _topology)
             .Restore(view);
 
+        // Saved-view restoration establishes its own Topology
+        // session. Synchronize the remembered selection without
+        // requesting another history reset on workspace return.
+        _crossWorkspaceNavigation
+            .SynchronizeRestoredTopologySession(
+                _workbenchState.SelectedResource);
+
         TopologyWorkspace
             .PrepareSavedViewVisualState(
                 summary.Plan);
@@ -1337,12 +1347,31 @@ public partial class UniversalWorkbenchWindow : Window
     private void NavigateToWorkspace(
         string view)
     {
+        if (_workbenchState.CurrentView.Equals(
+                "topology",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            // Capture topology-local selection changes before leaving.
+            _crossWorkspaceNavigation.EnterWorkspace(
+                "topology",
+                _workbenchState.SelectedResource);
+        }
+
+        var beginTopologySession =
+            _crossWorkspaceNavigation.EnterWorkspace(
+                view,
+                _workbenchState.SelectedResource);
+
         SetActivePrimaryNavigation(view);
+
         if (view.Equals(
                 "topology",
                 StringComparison.OrdinalIgnoreCase))
         {
-            _topology.BeginSession();
+            if (beginTopologySession)
+            {
+                _topology.BeginSession();
+            }
 
             RenderTopologySelection();
         }
