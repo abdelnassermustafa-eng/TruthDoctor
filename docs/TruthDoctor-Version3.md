@@ -1,17 +1,29 @@
 # TruthDoctor Authoritative Hybrid Infrastructure Intelligence & Operations Roadmap v3
 
-**Version:** 3.0
-**Date:** October 17, 2026
+**Version:** 3.1
+**Date:** October 28, 2026
 **Status:** Authoritative long-term product and engineering roadmap
 **Builds Upon:** TruthDoctor Authoritative Hybrid Multicloud Roadmap v2
 **Historical Preservation:** Roadmap v2 remains preserved as the prior authoritative architectural baseline.
-**Current Verified Development Baseline:** `3f239c7` — `fix: route global search into topology`
-**Current Automated Test Baseline:** 158 passed, 0 failed
+**Current Verified Development Baseline:** `ca750456265aeddffc554c0f05722ed43a2f2c02` — `test: add authorization bypass boundary regressions`
+**Current Automated Test Baseline:** 2,113 passed, 0 failed, 0 skipped
 **Repository State at Adoption:** `main` synchronized with `origin/main`
 
 ---
 
 # Executive Purpose
+
+## Unified Operational Vision — v3.1
+
+> **TruthDoctor could ultimately help an engineer move from identifying a problem, to planning a solution, to simulating and safely executing it, to verifying the outcome—all within one traceable operational workflow.**
+
+This statement defines the long-term engineering experience, not a claim
+that all its capabilities have been implemented.
+
+The architecture connects infrastructure intelligence, structured planning,
+simulation, governed execution, outcome verification, evidence, and history
+through a traceable operational identity. It builds on the existing
+provider-neutral TruthDoctor architecture.
 
 TruthDoctor is a provider-neutral **Hybrid Infrastructure Intelligence and Operations** platform.
 
@@ -391,6 +403,30 @@ Provider adapters translate universal intent into native APIs.
 
 # Part XII — Operations Engine
 
+## Shared Structured Operation Plan — v3.1 Direction
+
+A single provider-neutral structured operation plan is the canonical
+representation of proposed work. Future guided editing, Topology-based
+resource selection, and AI-assisted composition must contribute to the
+same reviewable plan rather than creating incompatible operation formats.
+
+The plan links intent, selected targets, explicit steps, dependencies,
+preconditions, proposed scripts, risk, expected outcomes, approvals,
+verification requirements, and evidence. Plan revisions must remain
+reviewable and attributable. Existing operation correlation identities
+provide the foundation for end-to-end traceability.
+
+Diagnosis, proposal, script generation, simulation, preflight, approval,
+execution, and verification are distinct activities. A successful dry run
+does not mean an operation executed. A provider response does not by
+itself establish a verified outcome. Neither AI-generated content nor
+a reported approval grants execution permission.
+
+Real infrastructure changes require separately implemented, tested,
+and enforced authorization, policy, revalidation, and controlled
+provider execution boundaries. This amendment does not claim that
+those runtime mechanisms already exist.
+
 Operations is the operator's universal command center. Its purpose is to **enable the operator to do real infrastructure work safely**.
 
 ```text
@@ -564,6 +600,31 @@ Automation remains policy-controlled and evidence-driven.
 
 # Part XX — Runbooks & Workflow Orchestration
 
+## Unified Intelligent Workflow Composer — Future Architecture
+
+TruthDoctor's future composer should integrate three complementary
+ways to express the same operational intent:
+
+- **Guided:** Define steps, parameters, dependencies, checks, approvals,
+  and rollback requirements using explicit controls.
+- **Topology:** Select affected resources, explore dependencies,
+  and carry visual infrastructure context into the operation plan.
+- **AI-assisted:** Describe goals and diagnostic problems in natural
+  language, receiving reviewable suggestions and proposed steps.
+
+All three entry points must modify the same structured operation plan.
+An engineer could select an EC2 instance in Topology, explain a problem
+to the AI assistant, and refine the remediation steps in the guided editor
+without losing resource identity, risk context, or previous plan decisions.
+
+Future plan outputs may include generated scripts, reusable runbooks,
+preflight checks, simulation requests, execution requests, rollback
+plans, and verification definitions. Every executable action remains
+subject to the established safety and approval boundaries.
+
+The full graphical composer is deferred until the underlying
+operation, execution, and verification systems are sufficiently mature.
+
 Runbooks evolve into controlled workflows containing checks, actions, verification, rollback, waits, conditions, approvals, parallel branches, retries, and human tasks.
 
 ---
@@ -653,6 +714,22 @@ Templates, saved reports, generated reports, scheduled reports, historical runs,
 
 # Part XXVI — Cloud Operations Assistant / AI Intelligence
 
+## AI Participation in the Shared Operation Plan
+
+The assistant may eventually propose diagnostics, alternative
+remediations, structured steps, scripts, checks, and expected outcomes
+using appropriately authorized and sufficiently fresh TruthDoctor data.
+
+The system must distinguish observed facts from inference, advice,
+simulation, proposed work, authorized actions, executed actions,
+and independently verified outcomes.
+
+AI suggestions enter the operator-reviewable structured plan.
+Natural-language instructions cannot bypass authentication,
+authorization, approval, scheduling, or execution policy.
+AI-generated scripts must not execute merely because they
+were generated or displayed.
+
 The assistant must operate on verified TruthDoctor engines using resource graph, service graph, telemetry, history, capabilities, policy, runbooks, reports, and evidence.
 
 It must distinguish observed fact, inference, recommendation, simulation, proposed operation, approved operation, executed operation, and verified outcome.
@@ -662,6 +739,27 @@ A request such as `Fix it` should generate an operation plan subject to normal r
 ---
 
 # Part XXVII — External Enterprise Integrations
+
+## Future DevOps Lifecycle Management
+
+TruthDoctor may eventually connect projects, work items, incidents,
+maintenance requests, change requests, deployments, and releases
+to infrastructure-aware operation plans and outcome evidence.
+
+A work item or incident should be linkable to the affected resources,
+diagnostic findings, remediation plan, risk assessment, approvals,
+execution history, verification results, and follow-up work.
+
+The operation correlation identity remains the primary internal
+operation-level reference. External ticket identifiers may link to it,
+but must not replace the platform's native operation identity.
+
+Evaluate integrations with Jira, GitHub Issues, and other established
+work-management systems before implementing broad native project
+management. TruthDoctor is not committed to replacing Jira.
+
+Production-grade enterprise integrations and a complete native
+DevOps work-management subsystem remain future capabilities.
 
 Potential integrations include ServiceNow, Jira, Teams, Slack, email, SIEM, CMDB, monitoring platforms, identity providers, ticketing/change systems, webhooks, and notifications.
 
@@ -840,6 +938,23 @@ Until these criteria are met, product language should say TruthDoctor is **evolv
 ---
 
 # Part XXXIV — Current Verified Development Checkpoint
+
+## Verified Progress Update — October 28, 2026
+
+- **Latest completed milestone:** G3.25.14 — Authorization Bypass Tests.
+- **Verified Git commit:** `ca750456265aeddffc554c0f05722ed43a2f2c02`.
+- **Complete regression:** 2,113 passed, 0 failed, 0 skipped.
+- **Repository:** 313 tracked files; local `main`, `origin/main`,
+  and GitHub `main` synchronized at the verified checkpoint.
+- **Working tree:** Clean at the verified checkpoint.
+- **Next implementation milestone:** G3.26.1 — Expected Outcome Definition,
+  after separate adoption of this roadmap amendment.
+- **Security limitation:** Existing authorization-bypass tests protect
+  declarative contract boundaries; runtime authorization bypass resistance
+  has not been established.
+
+The historical G3.19/G3.20 development checkpoint retained below
+records the original v3.0 adoption baseline and is not the current status.
 
 ## G3.19 — Topology Saved Views and Workspace Presets
 **Status:** Complete
@@ -1112,6 +1227,8 @@ Strategically approved but not immediate:
 - Predictive capacity AI
 - Multi-site disaster-recovery orchestration
 - Full graphical workflow designer
+- Advanced guided/Topology/AI workflow-composer interface; the common-plan architecture is approved, but complete visual composition is not part of G3.26
+- Broad native DevOps work-item and project-management lifecycle or Jira replacement; bounded external integrations are evaluated first
 - Advanced FinOps optimization
 - Automated fleet firmware lifecycle
 - Full CMDB replacement
@@ -1138,6 +1255,38 @@ Context-aware search coordinator, workspace-specific search engines, service gra
 
 # Part XXXVIII — Authoritative Decisions Adopted in v3
 
+## v3.1 Amendment Record — October 28, 2026
+
+**Reason:** Clarify how TruthDoctor's existing Operations Engine, Topology,
+AI Assistant, workflow orchestration, verification, history, and external
+integrations contribute to one future traceable engineering experience.
+
+**Added:** One shared structured operation-plan vision; integrated guided,
+Topology, and AI-assisted composition direction; future DevOps work-item
+traceability; and explicit distinctions among planning, simulation,
+approval, execution, and independent verification.
+
+**Modified:** Long-term product positioning, current verified development
+checkpoint, and clarification of deferred delivery scope.
+
+**Deferred:** Complete graphical workflow composition, production-grade
+Jira/ServiceNow integration, and broad native DevOps project management.
+
+**Removed:** None.
+
+**Architectural impact:** The existing operation identity and plan model
+remain canonical. Future composition surfaces must use existing
+authorization, execution, and evidence contracts rather than bypassing them.
+
+**Sequencing impact:** The G3.20–G3.30 milestone sequence is preserved
+without insertion, deletion, or renumbering. G3.26.1 remains the next
+development milestone. No future composer or DevOps feature is declared
+operational by this amendment.
+
+**Historical preservation:** Roadmap v3.0 remains available in Git at
+`ca750456265aeddffc554c0f05722ed43a2f2c02`. The original
+v2-to-v3 change-control history is preserved without rewriting.
+
 1. The expanded product mission is correct.
 2. Product positioning evolves toward **Hybrid Infrastructure Intelligence and Operations**.
 3. The lifecycle is `Discover → Monitor → Understand → Decide → Plan → Approve/Schedule → Act → Verify → Audit`.
@@ -1156,6 +1305,10 @@ Context-aware search coordinator, workspace-specific search engines, service gra
 16. G3.20–G3.30 is the approved near-term development sequence.
 17. The deferred capabilities in Part XXXVI remain deferred.
 18. No additional enterprise capability is currently required before adoption of v3.
+19. Future guided, Topology, and AI-assisted composition must converge on a shared structured operation plan.
+20. One operation-level correlation identity links intent, targets, approvals, actions, evidence, and verified outcomes.
+21. Broader DevOps lifecycle management is future scope, not a prerequisite for G3.26 or a commitment to replace Jira.
+22. AI proposals, simulation results, reported approvals, runtime execution, and independent verification must remain distinguishable states.
 
 ---
 
@@ -1216,8 +1369,12 @@ Its defining operational promise is:
 
 > **TruthDoctor understands the infrastructure context before change, governs the decision to act, executes through provider capabilities, verifies the resulting reality, and preserves the evidence.**
 
+Its long-term integrated engineering vision is:
+
+> **TruthDoctor could ultimately help an engineer move from identifying a problem, to planning a solution, to simulating and safely executing it, to verifying the outcome—all within one traceable operational workflow.**
+
 That promise governs every future provider, workspace, operation, report, automation, integration, administration function, and AI capability.
 
 ---
 
-**END OF AUTHORITATIVE ROADMAP v3**
+**END OF AUTHORITATIVE ROADMAP v3.1**
