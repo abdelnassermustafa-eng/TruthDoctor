@@ -77,15 +77,16 @@ public sealed class WorkbenchNavigationController
 
             case "history":
 
-                title.Text = "History";
+                var historyPresentation =
+                    WorkbenchHistoryPresentation.Create(
+                        Array.Empty<WorkbenchHistorySearchDocument>());
 
-                description.Text =
-                    "Discovery history.";
+                title.Text = historyPresentation.Title;
+                description.Text = historyPresentation.Description;
 
-                if (_state.PlatformState != null)
+                foreach (var document in historyPresentation.Documents)
                 {
-                    list.Items.Add(
-                        $"Last discovery: {_state.PlatformState.DiscoveredAt.LocalDateTime:g}");
+                    list.Items.Add(document.DisplayText);
                 }
 
                 break;
