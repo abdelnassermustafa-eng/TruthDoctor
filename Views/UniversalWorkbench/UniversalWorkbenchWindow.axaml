@@ -350,16 +350,16 @@
                             <TextBlock Text="Infrastructure Overview"
                                        FontSize="26"
                                        FontWeight="Bold"
-                                       Foreground="#F8FAFC"/>
+                                       Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
 
                             <TextBlock Text="Universal infrastructure state"
-                                       Foreground="#94A3B8"/>
+                                       Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
                         </StackPanel>
 
                         <TextBlock Grid.Column="1"
                                    Name="LastDiscoveryText"
                                    Text="Awaiting discovery"
-                                   Foreground="#94A3B8"
+                                   Foreground="{DynamicResource TD.TextPrimaryBrush}"
                                    VerticalAlignment="Center"/>
                     </Grid>
 
@@ -383,7 +383,7 @@
                             <StackPanel>
                                 <TextBlock Text="Provider"
                                            FontSize="10"
-                                           Foreground="#94A3B8"/>
+                                           Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
 
                                 <ComboBox Name="ProviderComboBox"
                                           Margin="0,5,0,0"
@@ -395,7 +395,7 @@
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="Account / Project"
                                            FontSize="10"
-                                           Foreground="#94A3B8"/>
+                                           Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
 
                                 <ComboBox Name="AccountComboBox"
                                           Margin="0,5,0,0"
@@ -407,7 +407,7 @@
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Location"
                                            FontSize="10"
-                                           Foreground="#94A3B8"/>
+                                           Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
 
                                 <ComboBox Name="LocationComboBox"
                                           Margin="0,5,0,0"
@@ -505,7 +505,7 @@
 
                     <TextBlock Grid.Row="1"
                                Name="SecondaryWorkspaceDescription"
-                               Foreground="#94A3B8"
+                               Foreground="{DynamicResource TD.TextPrimaryBrush}"
                                TextWrapping="Wrap"/>
 
                     <TextBox Grid.Row="2"
@@ -550,7 +550,7 @@
 
                                     <TextBlock Text="Select a resource to inspect its state, properties, relationships, and available operations."
                                                TextWrapping="Wrap"
-                                               Foreground="#94A3B8"/>
+                                               Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
