@@ -177,7 +177,7 @@
 
                     <Grid
                         Grid.Row="0"
-                        ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto"
+                        ColumnDefinitions="88,*,Auto,Auto,Auto,Auto"
                         ColumnSpacing="8">
 
                         <TextBlock
@@ -190,10 +190,12 @@
                         <TextBox
                             Grid.Column="1"
                             Name="TopologySearchTextBox"
+                            Background="{DynamicResource TD.SurfaceBrush}"
+                            Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                            BorderBrush="{DynamicResource TD.BorderBrush}"
                             Height="34"
                             MinWidth="120"
-                            MaxWidth="520"
-                            HorizontalAlignment="Stretch"
+                                                        HorizontalAlignment="Stretch"
                             Watermark="Search this topology..."/>
 
                         <Button
@@ -242,7 +244,7 @@
 
                     <Grid
                         Grid.Row="1"
-                        ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
+                        ColumnDefinitions="88,Auto,*,Auto,Auto,Auto"
                         ColumnSpacing="8">
 
                         <TextBlock
@@ -255,6 +257,9 @@
                         <ComboBox
                             Grid.Column="1"
                             Name="TopologyDomainComboBox"
+                            Background="{DynamicResource TD.SurfaceBrush}"
+                            Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                            BorderBrush="{DynamicResource TD.BorderBrush}"
                             Width="180"
                             IsEnabled="False"/>
 
@@ -267,6 +272,9 @@
                         <ComboBox
                             Grid.Column="4"
                             Name="TopologyLayoutComboBox"
+                            Background="{DynamicResource TD.SurfaceBrush}"
+                            Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                            BorderBrush="{DynamicResource TD.BorderBrush}"
                             Width="136"
                             SelectedIndex="0">
 
@@ -309,7 +317,7 @@
 
                 <Grid
                     RowDefinitions="Auto,Auto"
-                    ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
+                    ColumnDefinitions="88,*,Auto,Auto,Auto,Auto"
                     ColumnSpacing="8"
                     RowSpacing="4">
 
@@ -323,7 +331,7 @@
 
                     <TextBlock
                         Grid.Row="0"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         Name="TopologySavedViewCountText"
                         Text="0"
                         MinWidth="24"
@@ -335,8 +343,11 @@
 
                     <ComboBox
                         Grid.Row="0"
-                        Grid.Column="2"
+                        Grid.Column="1"
                         Name="TopologySavedViewComboBox"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         MinWidth="180"
                         MaxDropDownHeight="320"
                         HorizontalAlignment="Stretch"
@@ -352,6 +363,9 @@
                         Grid.Row="0"
                         Grid.Column="3"
                         Name="TopologyLoadViewButton"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Content="Load"
                         MinWidth="68"
                         Padding="12,5"
@@ -373,6 +387,9 @@
                         Grid.Row="0"
                         Grid.Column="5"
                         Name="TopologyManageViewButton"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Content="Manage ▾"
                         MinWidth="86"
                         Padding="12,5"
@@ -397,8 +414,8 @@
 
                     <TextBlock
                         Grid.Row="1"
-                        Grid.Column="2"
-                        Grid.ColumnSpan="4"
+                        Grid.Column="1"
+                        Grid.ColumnSpan="5"
                         Name="TopologySavedViewStatusText"
                         Text="No saved views"
                         Foreground="#7F9AB8"
@@ -420,7 +437,7 @@
 
                     <Grid
                         Grid.Row="0"
-                        ColumnDefinitions="Auto,Auto,*,Auto"
+                        ColumnDefinitions="88,Auto,*,Auto"
                         ColumnSpacing="8">
 
                         <TextBlock
