@@ -14,8 +14,8 @@
             <Border
                 Grid.Row="0"
                 Padding="12,9"
-                Background="#0B1728"
-                BorderBrush="#223149"
+                Background="{DynamicResource TD.SurfaceBrush}"
+                BorderBrush="{DynamicResource TD.BorderBrush}"
                 BorderThickness="0,0,0,1">
 
                 <Grid
@@ -28,9 +28,9 @@
                         Content="←  Back"
                         IsEnabled="False"
                         Padding="12,6"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyBackButton_OnClick"/>
 
                     <Button
@@ -39,9 +39,9 @@
                         Content="Forward  →"
                         IsEnabled="False"
                         Padding="12,6"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyForwardButton_OnClick"/>
 
                     <Button
@@ -50,9 +50,9 @@
                         Content="⌂  Home"
                         IsEnabled="False"
                         Padding="12,6"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyHomeButton_OnClick"/>
 
                     <TextBlock
