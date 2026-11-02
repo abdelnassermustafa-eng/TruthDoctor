@@ -6,22 +6,22 @@
     <Grid RowDefinitions="32,64">
 
         <Border Grid.Row="0"
-                Background="#081321"
-                BorderBrush="#223149"
+                Background="{DynamicResource TD.SurfaceBrush}"
+                BorderBrush="{DynamicResource TD.BorderBrush}"
                 BorderThickness="0,0,0,1">
 
             <Grid ColumnDefinitions="210,*"
                   Margin="12,0">
 
-                <TextBlock Text="◆  TruthDoctor V2"
+                <TextBlock Text="◆  TruthDoctor V3"
                            FontSize="14"
                            FontWeight="Bold"
-                           Foreground="#F8FAFC"
+                           Foreground="{DynamicResource TD.TextPrimaryBrush}"
                            VerticalAlignment="Center"/>
 
                 <Menu Grid.Column="1"
                       Background="Transparent"
-                      Foreground="#E2E8F0">
+                      Foreground="{DynamicResource TD.TextPrimaryBrush}">
 
                     <MenuItem Header="File">
                         <MenuItem Header="Connect"
@@ -91,8 +91,8 @@
         </Border>
 
         <Border Grid.Row="1"
-                Background="#0B1728"
-                BorderBrush="#223149"
+                Background="{DynamicResource TD.SurfaceBrush}"
+                BorderBrush="{DynamicResource TD.BorderBrush}"
                 BorderThickness="0,0,0,1">
 
             <Grid Margin="12"
@@ -138,7 +138,7 @@
 
                     <TextBlock Name="BackendStatusText"
                                Text="Backend unknown"
-                               Foreground="#FDE68A"
+                               Foreground="#FDE68A" Background="#0B1728"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
