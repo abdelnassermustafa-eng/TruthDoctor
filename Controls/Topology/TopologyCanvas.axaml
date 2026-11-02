@@ -103,9 +103,9 @@
                         Content="−"
                         Width="36"
                         Padding="8,6"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyZoomOutButton_OnClick"/>
 
                     <Button
@@ -114,9 +114,9 @@
                         Content="100%"
                         MinWidth="62"
                         Padding="10,6"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyResetZoomButton_OnClick"/>
 
                     <Button
@@ -125,9 +125,9 @@
                         Content="+"
                         Width="36"
                         Padding="8,6"
-                        Background="#15263D"
-                        Foreground="#E2E8F0"
-                        BorderBrush="#334A68"
+                        Background="{DynamicResource TD.SurfaceBrush}"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyZoomInButton_OnClick"/>
 
                     <Button
