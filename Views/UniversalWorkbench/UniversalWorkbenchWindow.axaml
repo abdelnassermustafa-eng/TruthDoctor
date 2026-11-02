@@ -373,8 +373,8 @@
 
                     <Border Padding="15"
                             CornerRadius="10"
-                            Background="#0D1B30"
-                            BorderBrush="#263A56"
+                            Background="{DynamicResource TD.SurfaceBrush}"
+                            BorderBrush="{DynamicResource TD.BorderBrush}"
                             BorderThickness="1">
 
                         <Grid ColumnDefinitions="1.1*,1.4*,1.3*,Auto"
@@ -428,8 +428,8 @@
                     </Border>
 
                     <Border CornerRadius="10"
-                            Background="#0D1B30"
-                            BorderBrush="#263A56"
+                            Background="{DynamicResource TD.SurfaceBrush}"
+                            BorderBrush="{DynamicResource TD.BorderBrush}"
                             BorderThickness="1">
 
                         <Grid RowDefinitions="Auto,*">
@@ -490,8 +490,8 @@
                     Margin="18"
                     IsVisible="False"
                     CornerRadius="10"
-                    Background="#0D1B30"
-                    BorderBrush="#263A56"
+                    Background="{DynamicResource TD.SurfaceBrush}"
+                    BorderBrush="{DynamicResource TD.BorderBrush}"
                     BorderThickness="1">
 
                 <Grid Margin="24"
@@ -524,8 +524,8 @@
 
 
             <Border Grid.Column="2"
-                    Background="#0A1627"
-                    BorderBrush="#223149"
+                    Background="{DynamicResource TD.SurfaceBrush}"
+                    BorderBrush="{DynamicResource TD.BorderBrush}"
                     BorderThickness="1,0,0,0">
 
                 <Grid RowDefinitions="*,Auto">
@@ -537,12 +537,12 @@
                             <TextBlock Text="Resource Details"
                                        FontSize="16"
                                        FontWeight="SemiBold"
-                                       Foreground="#F8FAFC"/>
+                                       Foreground="{DynamicResource TD.TextPrimaryBrush}"/>
 
                             <Border Padding="18"
                                     CornerRadius="10"
-                                    Background="#0D1B30"
-                                    BorderBrush="#263A56"
+                                    Background="{DynamicResource TD.SurfaceBrush}"
+                                    BorderBrush="{DynamicResource TD.BorderBrush}"
                                     BorderThickness="1">
 
                                 <StackPanel Name="ResourceDetailsPanel"
