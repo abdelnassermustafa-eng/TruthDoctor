@@ -123,8 +123,8 @@
                             <Border Margin="0,7,0,8"
                                     Padding="5"
                                     CornerRadius="10"
-                                    Background="#0D1D31"
-                                    BorderBrush="#1B324F"
+                                    Background="{DynamicResource TD.SurfaceBrush}"
+                                    BorderBrush="{DynamicResource TD.BorderBrush}"
                                     BorderThickness="1">
 
                                 <Expander Classes="nav-expander"
@@ -156,7 +156,7 @@
                                             Margin="12,8"
                                             FontSize="12"
                                             TextWrapping="Wrap"
-                                            Foreground="#64748B"
+                                            Foreground="{DynamicResource TD.TextPrimaryBrush}"
                                             Text="Domains appear after discovery"/>
                                     </StackPanel>
                                 </Expander>
@@ -333,7 +333,7 @@
                             <TextBlock Name="SidebarRefreshText"
                                        Text="Last refresh: not yet"
                                        FontSize="10"
-                                       Foreground="#71849D"/>
+                                       Foreground="#94A3B8"/>
                         </StackPanel>
                     </Border>
                 </Grid>
