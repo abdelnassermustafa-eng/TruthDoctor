@@ -1236,12 +1236,21 @@ public partial class TopologyCanvas : UserControl
         TopologyExportStatusText.Text =
             message;
 
+        var resourceKey = isError
+            ? "TD.StatusErrorBrush"
+            : "TD.StatusSuccessBrush";
+
+        if (!this.TryFindResource(
+                resourceKey,
+                out var resource) ||
+            resource is not IBrush brush)
+        {
+            throw new InvalidOperationException(
+                $"Missing topology status brush: {resourceKey}");
+        }
+
         TopologyExportStatusText.Foreground =
-            new SolidColorBrush(
-                Color.Parse(
-                    isError
-                        ? "#FCA5A5"
-                        : "#86EFAC"));
+            brush;
     }
 
 

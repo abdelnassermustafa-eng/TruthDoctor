@@ -96,7 +96,7 @@ public sealed class UX54612TopologyStaticLabelContrastTests
             "TopologyExportStatusText");
 
         Assert.Equal(
-            "#7F9AB8",
+            Primary,
             (string?)export.Attribute("Foreground"));
 
         foreach (string name in new[]

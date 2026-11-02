@@ -87,7 +87,7 @@
                         Text=""
                         MaxWidth="230"
                         TextTrimming="CharacterEllipsis"
-                        Foreground="#7F9AB8"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"/>
 
