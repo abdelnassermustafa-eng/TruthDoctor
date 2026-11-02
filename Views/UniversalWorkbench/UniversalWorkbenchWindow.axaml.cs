@@ -581,14 +581,14 @@ public partial class UniversalWorkbenchWindow : Window
         {
             Text = resource.DisplayName,
             FontWeight = FontWeight.SemiBold,
-            Foreground = Brush("#F8FAFC")
+            Foreground = Brush("#172B4D")
         });
 
         identity.Children.Add(new TextBlock
         {
             Text = resource.NativeId,
             FontSize = 10,
-            Foreground = Brush("#94A3B8")
+            Foreground = Brush("#526581")
         });
 
         Grid.SetColumn(identity, 1);
@@ -597,7 +597,7 @@ public partial class UniversalWorkbenchWindow : Window
         var type = new TextBlock
         {
             Text = resource.ResourceType,
-            Foreground = Brush("#CBD5E1"),
+            Foreground = Brush("#526581"),
             VerticalAlignment = VerticalAlignment.Center
         };
 
@@ -619,7 +619,7 @@ public partial class UniversalWorkbenchWindow : Window
         var location = new TextBlock
         {
             Text = resource.Location,
-            Foreground = Brush("#CBD5E1"),
+            Foreground = Brush("#526581"),
             VerticalAlignment = VerticalAlignment.Center
         };
 
@@ -696,7 +696,7 @@ public partial class UniversalWorkbenchWindow : Window
                     FontWeight.SemiBold,
 
                 Foreground =
-                    Brush("#F8FAFC")
+                    Brush("#172B4D")
             });
 
         var context =
@@ -721,7 +721,7 @@ public partial class UniversalWorkbenchWindow : Window
                     10,
 
                 Foreground =
-                    Brush("#94A3B8")
+                    Brush("#526581")
             });
 
         return new ListBoxItem

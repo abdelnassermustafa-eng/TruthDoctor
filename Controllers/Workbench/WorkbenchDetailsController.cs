@@ -66,7 +66,7 @@ public sealed class WorkbenchDetailsController
                     resource.DisplayName,
                 FontSize = 18,
                 FontWeight = FontWeight.Bold,
-                Foreground = Brush("#F8FAFC"),
+                Foreground = Brush("#172B4D"),
                 TextWrapping = TextWrapping.Wrap
             });
 
@@ -217,7 +217,7 @@ public sealed class WorkbenchDetailsController
                     "properties, relationships, tags, and " +
                     "available operations.",
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = Brush("#94A3B8")
+                Foreground = Brush("#526581")
             });
 
         assistantStatus.Text =
@@ -361,7 +361,7 @@ public sealed class WorkbenchDetailsController
                 Text = title,
                 Margin = new Thickness(0, 5, 0, 2),
                 FontWeight = FontWeight.SemiBold,
-                Foreground = Brush("#F8FAFC")
+                Foreground = Brush("#172B4D")
             });
     }
 
@@ -395,7 +395,7 @@ public sealed class WorkbenchDetailsController
             new TextBlock
             {
                 Text = label,
-                Foreground = Brush("#94A3B8"),
+                Foreground = Brush("#526581"),
                 TextWrapping = TextWrapping.Wrap
             });
 
@@ -403,7 +403,7 @@ public sealed class WorkbenchDetailsController
         {
             Text = value,
             TextWrapping = TextWrapping.Wrap,
-            Foreground = Brush("#E2E8F0")
+            Foreground = Brush("#172B4D")
         };
 
         Grid.SetColumn(valueText, 1);
