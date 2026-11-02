@@ -9,7 +9,7 @@
     Height="960"
     MinWidth="1280"
     MinHeight="760"
-    Background="#07111F">
+    Background="{DynamicResource TD.CanvasBrush}">
 
     <Window.Styles>
         <Style Selector="Button.nav-item">
@@ -21,7 +21,7 @@
             <Setter Property="VerticalContentAlignment"
                     Value="Center"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="Foreground" Value="{DynamicResource TD.TextPrimaryBrush}"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
@@ -30,9 +30,9 @@
         </Style>
 
         <Style Selector="Button.nav-item:pointerover">
-            <Setter Property="Background" Value="#15263D"/>
-            <Setter Property="Foreground" Value="#F8FAFC"/>
-            <Setter Property="BorderBrush" Value="#243B5A"/>
+            <Setter Property="Background" Value="{DynamicResource TD.HoverSurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TD.TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource TD.BorderBrush}"/>
         </Style>
 
         <Style Selector="Button.domain-item">
@@ -49,6 +49,17 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#3B82F6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="Button.nav-item.active:pointerover">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
+        </Style>
+
+        <Style Selector="Button.nav-item:focus-visible">
+            <Setter Property="BorderBrush" Value="{DynamicResource TD.FocusRingBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
         </Style>
 
         <Style Selector="Expander.nav-expander">
@@ -69,8 +80,8 @@
               ColumnDefinitions="290,*,370">
 
             <Border Grid.Column="0"
-                    Background="#081525"
-                    BorderBrush="#1E324C"
+                    Background="{DynamicResource TD.SurfaceBrush}"
+                    BorderBrush="{DynamicResource TD.BorderBrush}"
                     BorderThickness="0,0,1,0">
 
                 <Grid RowDefinitions="*,Auto">
