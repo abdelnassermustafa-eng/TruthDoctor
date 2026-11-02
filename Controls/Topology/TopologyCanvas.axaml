@@ -58,7 +58,7 @@
                     <TextBlock
                         Grid.Column="3"
                         Text="Depth"
-                        Foreground="#7F9AB8"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         VerticalAlignment="Center"/>
 
                     <ComboBox
@@ -94,7 +94,7 @@
                     <TextBlock
                         Grid.Column="6"
                         Text="View"
-                        Foreground="#7F9AB8"
+                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         VerticalAlignment="Center"/>
 
                     <Button
