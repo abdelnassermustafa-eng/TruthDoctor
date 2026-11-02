@@ -53,6 +53,12 @@ public static class TruthDoctorAvaloniaThemeAdapter
             appearance,
             systemUsesDark);
 
+        var isLight =
+            TruthDoctorThemeContract.Resolve(
+                appearance,
+                systemUsesDark) ==
+            TruthDoctorAppearance.ProfessionalLight;
+
         return new Dictionary<string, object>(
             StringComparer.Ordinal)
         {
@@ -73,6 +79,14 @@ public static class TruthDoctorAvaloniaThemeAdapter
 
             ["TD.HoverSurfaceBrush"] =
                 MakeBrush(palette.HoverSurface),
+
+            ["TD.StatusSuccessBrush"] =
+                MakeBrush(
+                    isLight ? "#166534" : "#86EFAC"),
+
+            ["TD.StatusErrorBrush"] =
+                MakeBrush(
+                    isLight ? "#991B1B" : "#FCA5A5"),
 
             ["TD.FocusRingBrush"] =
                 MakeBrush(palette.FocusRing)
