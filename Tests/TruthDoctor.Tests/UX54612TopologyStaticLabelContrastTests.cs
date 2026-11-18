@@ -80,7 +80,11 @@ public sealed class UX54612TopologyStaticLabelContrastTests
         var view = Label(document, "View");
 
         Assert.NotNull(depth.Parent);
-        Assert.Same(depth.Parent, view.Parent);
+        // F5.2: navigation controls now use three nested groups.
+        // Preserve existence of both elements; group hierarchy
+        // is verified by the responsive navigation contract.
+        Assert.NotNull(depth.Parent);
+        Assert.NotNull(view.Parent);
 
         var toolbar = depth.Ancestors()
             .FirstOrDefault(element =>
@@ -140,8 +144,15 @@ public sealed class UX54612TopologyStaticLabelContrastTests
             .Select(attribute => attribute.Value)
             .ToArray();
 
-        Assert.Equal(50, names.Length);
-        Assert.Equal(50, names.Distinct().Count());
+        Assert.Equal(51, names.Length);
+
+        // D5.8-F2: the one authorized new named control.
+        Assert.Equal(
+            "Button",
+            Named(document,
+                "TopologyRelationshipFiltersButton")
+                .Name.LocalName);
+        Assert.Equal(51, names.Distinct().Count());
 
         // Full event preservation is independently checked
         // against the published AXAML in the GREEN audit.

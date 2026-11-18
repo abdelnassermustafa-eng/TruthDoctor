@@ -121,31 +121,80 @@ public sealed class UX5542TopologyControlContrastTests
     {
         var document = Load();
 
-        foreach (var name in new[]
+        // F6.2: Load and Manage use a local secondary
+        // style instead of local color resource values.
+        // Keep their disabled-state and readability
+        // contracts explicit.
+        foreach (string name in new[]
         {
             "TopologyLoadViewButton",
             "TopologyManageViewButton"
         })
         {
-            AssertLightControl(
-                document,
-                name,
-                "Button");
+            var button = Named(document, name);
+
+            Assert.Equal(
+                "td-topology-secondary",
+                (string?)button.Attribute("Classes"));
+
+            Assert.Equal(
+                "False",
+                (string?)button.Attribute("IsEnabled"));
+
+            Assert.Null(button.Attribute("Background"));
+            Assert.Null(button.Attribute("Foreground"));
+            Assert.Null(button.Attribute("BorderBrush"));
         }
 
-        Assert.Equal(
-            "False",
-            (string?)Named(
-                document,
-                "TopologyLoadViewButton")
-                .Attribute("IsEnabled"));
+        XNamespace a = "https://github.com/avaloniaui";
 
-        Assert.Equal(
-            "False",
-            (string?)Named(
-                document,
-                "TopologyManageViewButton")
-                .Attribute("IsEnabled"));
+        var baseStyle = document.Descendants(a + "Style")
+            .Single(style =>
+                (string?)style.Attribute("Selector")
+                == "Button.td-topology-secondary");
+
+        var disabledStyle = document.Descendants(a + "Style")
+            .Single(style =>
+                (string?)style.Attribute("Selector")
+                == "Button.td-topology-secondary:disabled");
+
+        var normal = baseStyle.Elements(a + "Setter")
+            .ToDictionary(
+                setter =>
+                    (string?)setter.Attribute("Property") ?? "",
+                setter =>
+                    (string?)setter.Attribute("Value") ?? "");
+
+        var disabled = disabledStyle.Elements(a + "Setter")
+            .ToDictionary(
+                setter =>
+                    (string?)setter.Attribute("Property") ?? "",
+                setter =>
+                    (string?)setter.Attribute("Value") ?? "");
+
+        Assert.Equal("#F8FAFC", normal["Background"]);
+        Assert.Equal("#0F172A", normal["Foreground"]);
+        Assert.Equal("#CBD5E1", normal["BorderBrush"]);
+
+        Assert.Equal("#E2E8F0", disabled["Background"]);
+        Assert.Equal("#475569", disabled["Foreground"]);
+        Assert.Equal("#CBD5E1", disabled["BorderBrush"]);
+        Assert.Equal("1", disabled["Opacity"]);
+
+        foreach (string selector in new[]
+        {
+            "Button.td-topology-secondary:pointerover",
+            "Button.td-topology-secondary:pressed",
+            "Button.td-topology-secondary:focus-visible",
+            "Button.td-topology-secondary:disabled:pointerover",
+            "Button.td-topology-secondary:disabled /template/ ContentPresenter#PART_ContentPresenter"
+        })
+        {
+            Assert.Single(document.Descendants(a + "Style")
+                .Where(style =>
+                    (string?)style.Attribute("Selector")
+                    == selector));
+        }
     }
 
     [Fact]
@@ -160,8 +209,15 @@ public sealed class UX5542TopologyControlContrastTests
             .Select(attribute => attribute.Value)
             .ToArray();
 
-        Assert.Equal(50, names.Length);
-        Assert.Equal(50, names.Distinct().Count());
+        Assert.Equal(51, names.Length);
+
+        // D5.8-F2: the one authorized new named control.
+        Assert.Equal(
+            "Button",
+            Named(document,
+                "TopologyRelationshipFiltersButton")
+                .Name.LocalName);
+        Assert.Equal(51, names.Distinct().Count());
 
         Assert.Equal(
             "Button",

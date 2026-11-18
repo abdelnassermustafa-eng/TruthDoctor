@@ -129,9 +129,27 @@ public partial class TopologyCanvas : UserControl
 
     public event Action<string>? DeleteViewRequested;
 
+
+    /// <summary>
+    /// True selects all discovered infrastructure.
+    /// False restores selected-resource neighborhood projection.
+    /// </summary>
+    public event Action<bool>? InfrastructureScopeChanged;
+
+    private void TopologyScopeComboBox_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs eventArgs)
+    {
+        InfrastructureScopeChanged?.Invoke(
+            TopologyScopeComboBox.SelectedIndex == 0);
+    }
+
     public TopologyCanvas()
     {
         InitializeComponent();
+
+        TopologyScopeComboBox.SelectionChanged +=
+            TopologyScopeComboBox_OnSelectionChanged;
 
         TopologySurface.PointerWheelChanged +=
             TopologySurface_OnPointerWheelChanged;
@@ -3761,7 +3779,7 @@ public partial class TopologyCanvas : UserControl
 
         TopologySearchStatusText.Text =
             !hasSearch
-                ? "Search current graph"
+                ? ""
                 : !hasMatches
                     ? "No matches"
                     : $"{_activeSearchMatchIndex + 1} " +

@@ -11,6 +11,7 @@ public sealed class WorkbenchDiscoveryController
 {
     private readonly WorkbenchState _state;
     private readonly PlatformStateClient _client;
+    private readonly Func<string?, CancellationToken, Task<TruthDoctor.Models.Platform.PlatformState>>? _offlineDiscovery;
     private readonly InfrastructureGraphBuilder
         _graphBuilder;
 
@@ -27,6 +28,23 @@ public sealed class WorkbenchDiscoveryController
         _graphBuilder =
             graphBuilder ??
             new InfrastructureGraphBuilder();
+    }
+
+    /// <summary>
+    /// Creates a workbench discovery controller with an
+    /// explicitly supplied, non-HTTP discovery delegate.
+    /// The delegate owns retrieval; the controller retains
+    /// workbench state, graph, and event coordination.
+    /// </summary>
+    public WorkbenchDiscoveryController(
+        WorkbenchState state,
+        Func<string?, CancellationToken,
+            Task<TruthDoctor.Models.Platform.PlatformState>>
+            offlineDiscovery)
+        : this(state)
+    {
+        ArgumentNullException.ThrowIfNull(offlineDiscovery);
+        _offlineDiscovery = offlineDiscovery;
     }
 
     public event EventHandler? DiscoveryStarted;
@@ -50,30 +68,41 @@ public sealed class WorkbenchDiscoveryController
 
             DiscoveryStarted?.Invoke(this, EventArgs.Empty);
 
-            var username =
-                Environment.GetEnvironmentVariable(
-                    "TRUTHDOCTOR_USERNAME")
-                ?? "admin";
+            TruthDoctor.Models.Platform.PlatformState platformState;
 
-            var password =
-                Environment.GetEnvironmentVariable(
-                    "TRUTHDOCTOR_PASSWORD")
-                ?? "admin123";
-
-            var authenticated = await _client.LoginAsync(
-                username,
-                password,
-                cancellationToken);
-
-            if (!authenticated)
+            if (_offlineDiscovery is not null)
             {
-                throw new InvalidOperationException(
-                    "TruthApi authentication failed.");
+                platformState = await _offlineDiscovery(
+                    location,
+                    cancellationToken);
             }
+            else
+            {
+                var username =
+                    Environment.GetEnvironmentVariable(
+                        "TRUTHDOCTOR_USERNAME")
+                    ?? "admin";
 
-            var platformState = await _client.GetStateAsync(
-                location,
-                cancellationToken);
+                var password =
+                    Environment.GetEnvironmentVariable(
+                        "TRUTHDOCTOR_PASSWORD")
+                    ?? "admin123";
+
+                var authenticated = await _client.LoginAsync(
+                    username,
+                    password,
+                    cancellationToken);
+
+                if (!authenticated)
+                {
+                    throw new InvalidOperationException(
+                        "TruthApi authentication failed.");
+                }
+
+                platformState = await _client.GetStateAsync(
+                    location,
+                    cancellationToken);
+            }
 
             _state.SetPlatformState(platformState);
 

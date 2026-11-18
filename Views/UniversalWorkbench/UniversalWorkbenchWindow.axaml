@@ -70,6 +70,27 @@
                     Value="Stretch"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
+
+        <!-- D5.7-B7: preserve selected navigation styling
+             inside the Fluent Button ContentPresenter. -->
+        <Style Selector="Button.nav-item.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
+        </Style>
+        <Style Selector="Button.nav-item.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
+        </Style>
+        <Style Selector="Button.nav-item.active:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1E40AF"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.nav-item.active:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="#0F766E"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="96,*,30">
@@ -77,7 +98,14 @@
         <controls:WorkbenchTopBar Grid.Row="0" Name="TopBar"/>
 
         <Grid Grid.Row="1"
-              ColumnDefinitions="290,*,370">
+              >
+            <!-- R7.1: resizable Resource Details boundary. -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="290" MinWidth="240"/>
+                <ColumnDefinition Width="*" MinWidth="320"/>
+                <ColumnDefinition Width="8" MinWidth="8" MaxWidth="8"/>
+                <ColumnDefinition Width="370" MinWidth="300"/>
+            </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
                     Background="{DynamicResource TD.SurfaceBrush}"
@@ -377,7 +405,7 @@
                             BorderBrush="{DynamicResource TD.BorderBrush}"
                             BorderThickness="1">
 
-                        <Grid ColumnDefinitions="1.1*,1.4*,1.3*,Auto"
+                        <Grid ColumnDefinitions="2.6*,1.2*,1*,Auto"
                               ColumnSpacing="12">
 
                             <StackPanel>
@@ -389,6 +417,7 @@
                                           Margin="0,5,0,0"
                                           SelectedIndex="0">
                                     <ComboBoxItem Content="Not connected"/>
+                                        <ComboBoxItem Content="Local Demo (Offline)"/>
                                 </ComboBox>
                             </StackPanel>
 
@@ -418,6 +447,7 @@
 
                             <Button Grid.Column="3"
                                     Name="RunDiscoveryButton"
+                                    Classes="td-primary"
                                     Content="▶  Run Discovery"
                                     Padding="20,9"
                                     Background="#2563EB"
@@ -472,7 +502,8 @@
                                      Margin="12"
                                      MinHeight="400"
                                      Background="{DynamicResource TD.SurfaceBrush}"
-                                     SelectionChanged="ResourceListBox_OnSelectionChanged"/>
+                                     SelectionChanged="ResourceListBox_OnSelectionChanged"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
                         </Grid>
                     </Border>
                 </StackPanel>
@@ -508,29 +539,83 @@
                                Foreground="{DynamicResource TD.TextPrimaryBrush}"
                                TextWrapping="Wrap"/>
 
-                    <TextBox Grid.Row="2"
-                             Name="SecondaryWorkspaceSearchTextBox"
-                             IsVisible="False"
-                             Watermark="Search all resources..."
-                             TextChanged="SecondaryWorkspaceSearchTextBox_OnTextChanged"/>
+                    <Grid Grid.Row="2"
+                          Name="SecondaryWorkspaceResourcesFilters"
+                          IsVisible="False"
+                          ColumnDefinitions="*,145,125,42"
+                          ColumnSpacing="8">
 
-                    <ListBox Grid.Row="3"
-                             Name="SecondaryWorkspaceList"
-                             MinHeight="500"
-                             Background="{DynamicResource TD.SurfaceBrush}"
-                             SelectionChanged="SecondaryWorkspaceList_OnSelectionChanged"/>
+                        <TextBox Grid.Column="0"
+                                 Name="SecondaryWorkspaceSearchTextBox"
+                                 IsVisible="False"
+                                 Watermark="Search all resources..."
+                                 TextChanged="SecondaryWorkspaceSearchTextBox_OnTextChanged"/>
+
+                        <ComboBox Grid.Column="1"
+                                  Name="SecondaryDomainFilterComboBox"
+                                  SelectionChanged="SecondaryResourceFilter_OnSelectionChanged"/>
+
+                        <ComboBox Grid.Column="2"
+                                  Name="SecondaryStateFilterComboBox"
+                                  SelectionChanged="SecondaryResourceFilter_OnSelectionChanged"/>
+
+                        <Button Grid.Column="3"
+                                Content="↻"
+                                ToolTip.Tip="Refresh discovery"
+                                Click="RunDiscoveryButton_OnClick"/>
+
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="3"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Disabled">
+
+                        <Grid RowDefinitions="Auto,*"
+                              MinWidth="1950">
+
+                            <Border Grid.Row="0"
+                                    Name="SecondaryWorkspaceInventoryHeader"
+                                    IsVisible="False"
+                                    Padding="8"
+                                    Background="{DynamicResource TD.SurfaceBrush}"
+                                    BorderBrush="{DynamicResource TD.BorderBrush}"
+                                    BorderThickness="0,0,0,1">
+
+                                <ContentControl
+                                    Name="SecondaryWorkspaceInventoryHeaderContent"/>
+
+                            </Border>
+
+                            <ListBox Grid.Row="1"
+                                     Name="SecondaryWorkspaceList"
+                                     MinHeight="500"
+                                     Background="{DynamicResource TD.SurfaceBrush}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     SelectionChanged="SecondaryWorkspaceList_OnSelectionChanged"/>
+
+                        </Grid>
+
+                    </ScrollViewer>
                 </Grid>
             </Border>
 
 
-            <Border Grid.Column="2"
+            <GridSplitter Grid.Column="2"
+                          Width="8"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="#9EB3CE"/>
+
+            <Border Grid.Column="3"
                     Background="{DynamicResource TD.SurfaceBrush}"
                     BorderBrush="{DynamicResource TD.BorderBrush}"
                     BorderThickness="1,0,0,0">
 
                 <Grid RowDefinitions="*,Auto">
 
-                    <ScrollViewer>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="14"
                                     Spacing="12">
 

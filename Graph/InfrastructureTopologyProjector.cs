@@ -200,4 +200,71 @@ public sealed class InfrastructureTopologyProjector
             Edges = edges
         };
     }
+
+    /// <summary>
+    /// Projects every indexed graph node into a topology view,
+    /// including resources without relationships.
+    /// Does not choose or mutate a workbench selection.
+    /// </summary>
+    public TopologyView ProjectFullInfrastructure()
+    {
+        var nodes = _index.Graph.Nodes.Values
+            .Select(node =>
+            {
+                var resource =
+                    node.Resource as InfrastructureResource;
+
+                return new TopologyNode
+                {
+                    Id = node.Id,
+                    ProviderId = node.ProviderId,
+                    AccountId = resource?.AccountId ?? "",
+                    DomainId = node.DomainId,
+                    ResourceType = node.ResourceType,
+                    DisplayName = node.DisplayName,
+                    NativeId = resource?.NativeId ?? "",
+                    State = resource?.State ?? "",
+                    Location = resource?.Location ?? "",
+                    AvailabilityZone =
+                        resource?.AvailabilityZone ?? "",
+                    Arn = resource?.Arn ?? "",
+                    Properties =
+                        resource?.Properties ??
+                        new Dictionary<string, string>(),
+                    Tags =
+                        resource?.Tags ??
+                        new Dictionary<string, string>(),
+                    IsSelected = false
+                };
+            })
+            .OrderBy(node => node.DomainId)
+            .ThenBy(node => node.DisplayName)
+            .ThenBy(node => node.Id)
+            .ToList();
+
+        var includedIds = new HashSet<string>(
+            nodes.Select(node => node.Id),
+            StringComparer.OrdinalIgnoreCase);
+
+        var edges = _index.Graph.Edges
+            .Where(edge =>
+                includedIds.Contains(edge.SourceId) &&
+                includedIds.Contains(edge.TargetId))
+            .Select(edge =>
+                new TopologyEdge
+                {
+                    SourceId = edge.SourceId,
+                    TargetId = edge.TargetId,
+                    Relationship = edge.Relationship,
+                    Kind = _semantics.ResolveKind(
+                        edge.Relationship)
+                })
+            .ToList();
+
+        return new TopologyView
+        {
+            Nodes = nodes,
+            Edges = edges
+        };
+    }
 }

@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using TruthDoctor.Models.Platform;
 using TruthDoctor.Services;
 using TruthDoctor.Services.Providers;
+using TruthDoctor.Services.Standalone;
 using TruthDoctor.Services.Visuals;
 using TruthDoctor.ViewModels;
 using TruthDoctor.Controllers.Workbench;
@@ -60,6 +61,38 @@ public partial class UniversalWorkbenchWindow : Window
 
     private readonly WorkbenchDiscoveryController
         _discovery;
+
+    // The demo is strictly opt-in. Normal startup retains
+    // the existing discovery controller.
+    private readonly StandaloneLocalDemoSession? _localDemo =
+        Environment.GetEnvironmentVariable(
+            "TRUTHDOCTOR_STANDALONE_DEMO") == "1"
+            ? new StandaloneLocalDemoSession()
+            : null;
+
+    // Real AWS discovery is strictly opt-in.
+    // Normal desktop and demo modes remain unchanged.
+    // Explicit, offline SG visual acceptance fixture.
+    // This is not live AWS discovery.
+    private readonly StandaloneSyntheticAwsSecurityGroupSession?
+        _syntheticSgDemo =
+        Environment.GetEnvironmentVariable(
+            "TRUTHDOCTOR_SYNTHETIC_AWS_SG_DEMO") == "1"
+            ? new StandaloneSyntheticAwsSecurityGroupSession()
+            : null;
+
+    private readonly StandaloneAwsDesktopSession? _awsSession =
+        StandaloneAwsDesktopSession.FromEnvironment();
+
+    // Explicit opt-in only; the in-process source remains
+    // unconfigured until separately authorized and tested.
+    private readonly bool _inProcessDiscoveryRequested =
+        Environment.GetEnvironmentVariable(
+            "TRUTHDOCTOR_INPROCESS_DISCOVERY") == "1";
+
+    private readonly bool _inProcessLocalDemoRequested =
+        Environment.GetEnvironmentVariable(
+            "TRUTHDOCTOR_INPROCESS_LOCAL_DEMO") == "1";
 
     private readonly TopologySavedViewCatalogService
         _savedViews;
@@ -197,6 +230,16 @@ public partial class UniversalWorkbenchWindow : Window
             }
         };
 
+
+        TopologyWorkspace.InfrastructureScopeChanged +=
+            showFullInfrastructure =>
+            {
+                _showFullInfrastructureTopology =
+                    showFullInfrastructure;
+
+                RenderTopologySelection();
+            };
+
         TopologyWorkspace.DepthChanged += depth =>
         {
             if (_topology.SetDepth(depth))
@@ -248,7 +291,17 @@ public partial class UniversalWorkbenchWindow : Window
         TopBar.UserActionRequested += (_, action) =>
             HandleUserAction(action);
 
-        Opened += async (_, _) => await LoadStateAsync();
+        Opened += async (_, _) =>
+        {
+            if (DesktopStartupDiscoveryPolicy.ShouldAutoDiscover(
+                    localDemo: _localDemo is not null,
+                    syntheticSecurityGroup: _syntheticSgDemo is not null,
+                    awsStandalone: _awsSession is not null,
+                    inProcess: _inProcessDiscoveryRequested))
+            {
+                await LoadStateAsync();
+            }
+        };
 
         UpdateClock();
     }
@@ -256,10 +309,142 @@ public partial class UniversalWorkbenchWindow : Window
     private async Task LoadStateAsync(
         string? region = null)
     {
+        bool uiLocalDemoSelected = DesktopManualDiscoveryPolicy.MayUseOfflineDemo(
+            ProviderComboBox.SelectedIndex == 1);
+
+        // A plain user action cannot silently contact the legacy HTTP backend.
+        // Explicitly selected offline demo is routed to the existing in-process runner.
         SetLoadingState();
 
-        var succeeded =
-            await _discovery.DiscoverAsync(region);
+        DesktopDiscoveryRoute selectedRoute;
+
+        try
+        {
+            selectedRoute = DesktopDiscoveryRouteSelector.Select(
+                localDemo: _localDemo is not null,
+                syntheticSecurityGroup: _syntheticSgDemo is not null,
+                awsStandalone: _awsSession is not null,
+                inProcess: _inProcessDiscoveryRequested || uiLocalDemoSelected);
+        }
+        catch (InvalidOperationException exception)
+        {
+            ApplyFailure(exception.Message);
+            return;
+        }
+
+
+        if (selectedRoute == DesktopDiscoveryRoute.LegacyHttp &&
+            !DesktopManualDiscoveryPolicy.MayUseLegacyHttp(
+                true,
+                Environment.GetEnvironmentVariable("TRUTHDOCTOR_LEGACY_HTTP_DISCOVERY") == "1"))
+        {
+            ApplyFailure("Select Local Demo (Offline) before discovery.");
+            return;
+        }
+
+        // Do not fall back to HTTP when explicit in-process
+        // discovery has no approved execution source.
+        if (selectedRoute == DesktopDiscoveryRoute.InProcess)
+        {
+
+            // UI selection authorizes the offline demo independently.
+            // Otherwise preserve the original environment secondary gate.
+            if (!uiLocalDemoSelected)
+            {
+                if (!_inProcessLocalDemoRequested)
+                {
+                    ApplyFailure(
+                        "In-process discovery is not configured.");
+                    return;
+                }
+            }
+        }
+
+        bool succeeded;
+
+        if (selectedRoute == DesktopDiscoveryRoute.LegacyHttp)
+        {
+            succeeded = await _discovery.DiscoverAsync(region);
+        }
+        else
+        {
+            try
+            {
+                if (selectedRoute != DesktopDiscoveryRoute.InProcess)
+                {
+                    _workbenchState.IsDiscovering = true;
+                    _workbenchState.NotifyChanged();
+                }
+                _workbenchState.LastError = "";
+
+                if (selectedRoute == DesktopDiscoveryRoute.InProcess)
+                {
+                    DesktopInProcessExecutionDecision coordinatorDecision =
+                        await DesktopInProcessDiscoveryRunner.ExecuteAsync(
+        _workbenchState,
+        _inProcessDiscoveryRequested || uiLocalDemoSelected,
+        _inProcessLocalDemoRequested || uiLocalDemoSelected,
+        async cancellationToken =>
+        {
+            await DesktopInProcessDiscoveryBridge.ExecuteAsync(
+                _workbenchState,
+                (workbench, location, sessionCancellationToken) =>
+                                                new StandaloneLocalDemoSession().DiscoverAsync(
+                                                    workbench,
+                                                    location,
+                                                    sessionCancellationToken),
+                region,
+                cancellationToken);
+        },
+        default);
+
+                    if (coordinatorDecision ==
+                        DesktopInProcessExecutionDecision.FailClosed)
+                    {
+                        throw new InvalidOperationException(
+                            "In-process discovery is not configured.");
+                    }
+
+                    if (coordinatorDecision !=
+                        DesktopInProcessExecutionDecision.OfflineLocalDemo)
+                    {
+                        throw new InvalidOperationException(
+                            "Unexpected offline discovery authorization result.");
+                    }
+                }
+                else if (_syntheticSgDemo is not null)
+                {
+                    await _syntheticSgDemo.DiscoverAsync(
+                        _workbenchState);
+                }
+                else if (_awsSession is not null)
+                {
+                    await _awsSession.DiscoverAsync(
+                        _workbenchState, region);
+                }
+                else
+                {
+                    await _localDemo!.DiscoverAsync(
+                        _workbenchState, region);
+                }
+
+                if (selectedRoute != DesktopDiscoveryRoute.InProcess)
+                {
+                    _workbenchState.IsDiscovering = false;
+                    _workbenchState.NotifyChanged();
+                }
+                succeeded = true;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception exception)
+            {
+                _workbenchState.SetFailure(exception.Message);
+                succeeded = false;
+            }
+        }
 
         if (!succeeded)
         {
@@ -277,6 +462,36 @@ public partial class UniversalWorkbenchWindow : Window
         }
 
         ApplyState(_state);
+
+        if (uiLocalDemoSelected)
+        {
+            ProviderComboBox.Items.Clear();
+            ProviderComboBox.Items.Add("Not connected");
+            ProviderComboBox.Items.Add("Local Demo (Offline)");
+            ProviderComboBox.SelectedIndex = 1;
+            StatusApiText.Text = "Offline demo - no API";
+        }
+
+
+        if (_localDemo is not null)
+        {
+            ProviderComboBox.Items.Clear();
+            ProviderComboBox.Items.Add(
+                "Local Demo (mock, offline)");
+            ProviderComboBox.SelectedIndex = 0;
+
+            StatusApiText.Text = "Offline demo - no API";
+        }
+
+        if (_syntheticSgDemo is not null)
+        {
+            ProviderComboBox.Items.Clear();
+            ProviderComboBox.Items.Add(
+                "Synthetic AWS Security Groups (OFFLINE)");
+            ProviderComboBox.SelectedIndex = 0;
+            StatusApiText.Text =
+                "Synthetic SG fixture - no AWS API";
+        }
     }
 
     private void ApplyState(PlatformState state)
@@ -375,6 +590,44 @@ public partial class UniversalWorkbenchWindow : Window
             StatusDiscoveryText,
             StatusApiText,
             AssistantStatusText);
+
+        // Offline discovery does not imply cloud authentication.
+        if (string.Equals(
+                state.Context.DefaultLocation,
+                "local-demo",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                state.Context.DefaultLocation,
+                "synthetic-offline",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            TopBar.SetOfflineFixtureStatus();
+            StatusApiText.Text = "Offline fixture - no cloud API";
+            StatusApiText.Foreground = Brush("#0F766E");
+        }
+
+        // The standalone AWS CLI provider is authenticated through
+        // its own discovery session. Do not report an HTTP backend
+        // health result that was never independently checked.
+        if (_awsSession is not null &&
+            string.Equals(
+                state.Context.ProviderId,
+                "aws",
+                StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(
+                state.Context.DefaultLocation,
+                "synthetic-offline",
+                StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(
+                state.Context.DefaultLocation,
+                "local-demo",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            TopBar.SetStandaloneProviderConnected();
+
+            StatusApiText.Text = "AWS CLI: Connected";
+            StatusApiText.Foreground = Brush("#15803D");
+        }
 
         ApplyFilters();
     }
@@ -532,11 +785,260 @@ public partial class UniversalWorkbenchWindow : Window
         RenderResources();
     }
 
+
+
+    // Sorting is presentation state, never discovery state.
+    private int? _primarySortColumn;
+    private bool _primarySortDescending;
+    private int? _secondarySortColumn;
+    private bool _secondarySortDescending;
+
+    private void OnPrimarySortHeaderClick(int column)
+    {
+        _primarySortDescending =
+            _primarySortColumn == column &&
+            !_primarySortDescending;
+
+        _primarySortColumn = column;
+        RenderResources();
+    }
+
+    private void OnSecondarySortHeaderClick(int column)
+    {
+        _secondarySortDescending =
+            _secondarySortColumn == column &&
+            !_secondarySortDescending;
+
+        _secondarySortColumn = column;
+        RenderSecondaryResources();
+    }
+
+    private static DateTimeOffset? NativeCreationSortTime(
+        InfrastructureResource resource)
+    {
+        if (resource.LifecycleEvidence?.VerifiedCreation
+            is { } verified)
+        {
+            return verified.OccurredAt;
+        }
+
+        return resource.Properties.TryGetValue(
+                   "NativeLifecycle.CreationTimestamp",
+                   out var raw) &&
+               DateTimeOffset.TryParse(
+                   raw,
+                   System.Globalization.CultureInfo.InvariantCulture,
+                   System.Globalization.DateTimeStyles.RoundtripKind,
+                   out var parsed)
+            ? parsed
+            : null;
+    }
+
+    private static DateTimeOffset? SortDate(
+        InfrastructureResource resource,
+        int field)
+    {
+        return field switch
+        {
+            9 => NativeCreationSortTime(resource),
+            10 => resource.LifecycleEvidence?
+                .LastVerifiedActivity?.OccurredAt,
+            11 => resource.DiscoveredAt == default
+                ? null
+                : resource.DiscoveredAt,
+            _ => null
+        };
+    }
+
+    private static int CompareResourceRows(
+        InfrastructureResource left,
+        InfrastructureResource right,
+        int column,
+        bool primary,
+        bool descending)
+    {
+        var field = primary
+            ? column switch
+            {
+                1 => 0,
+                2 => 1,
+                3 => 2,
+                4 => 6,
+                5 => 5,
+                6 => 9,
+                _ => -1
+            }
+            : column;
+
+        int comparison;
+
+        // Missing dates remain last in both directions.
+        if (field is 9 or 10 or 11)
+        {
+            var leftTime = SortDate(left, field);
+            var rightTime = SortDate(right, field);
+
+            if (!leftTime.HasValue)
+                return rightTime.HasValue ? 1 : 0;
+
+            if (!rightTime.HasValue)
+                return -1;
+
+            comparison =
+                leftTime.Value.CompareTo(rightTime.Value);
+        }
+        else if (field == 8)
+        {
+            comparison = left.Relationships.Count.CompareTo(
+                right.Relationships.Count);
+        }
+        else
+        {
+            string? leftValue = field switch
+            {
+                0 => left.DisplayName,
+                1 => left.NativeId,
+                2 => left.ResourceType,
+                3 => left.ProviderId,
+                4 => left.AccountId,
+                5 => left.Location,
+                6 => left.State,
+                7 => left.AvailabilityZone,
+                _ => null
+            };
+
+            string? rightValue = field switch
+            {
+                0 => right.DisplayName,
+                1 => right.NativeId,
+                2 => right.ResourceType,
+                3 => right.ProviderId,
+                4 => right.AccountId,
+                5 => right.Location,
+                6 => right.State,
+                7 => right.AvailabilityZone,
+                _ => null
+            };
+
+            comparison =
+                StringComparer.OrdinalIgnoreCase.Compare(
+                    leftValue, rightValue);
+        }
+
+        return descending ? -comparison : comparison;
+    }
+
+    private static List<InfrastructureResource>
+        SortResourceRows(
+            IEnumerable<InfrastructureResource> input,
+            int? column,
+            bool descending,
+            bool primary)
+    {
+        if (!column.HasValue)
+            return input.ToList();
+
+        return input
+            .OrderBy(
+                resource => resource,
+                Comparer<InfrastructureResource>.Create(
+                    (left, right) =>
+                        CompareResourceRows(
+                            left,
+                            right,
+                            column.Value,
+                            primary,
+                            descending)))
+            .ToList();
+    }
+
+    private static Button MakeSortHeaderButton(
+        string title,
+        int column,
+        int? selectedColumn,
+        bool descending,
+        Action<int> onClick)
+    {
+        var indicator = selectedColumn == column
+            ? (descending ? " ▼" : " ▲")
+            : " ↕";
+
+        var button = new Button
+        {
+            Content = title + indicator,
+            FontWeight = FontWeight.SemiBold,
+            Foreground = Brush("#172B4D"),
+            Background = Brush("#F8FAFC"),
+            BorderThickness = new Thickness(0),
+            HorizontalContentAlignment =
+                HorizontalAlignment.Left,
+            Padding = new Thickness(5, 3, 5, 3)
+        };
+
+        ToolTip.SetTip(
+            button,
+            "Sort " + title +
+            " ascending or descending");
+
+        button.Click += (_, _) =>
+            onClick(column);
+
+        return button;
+    }
+
+    private ListBoxItem CreatePrimaryLifecycleHeader()
+    {
+        var columns = new[]
+        {
+            "", "Resource", "Resource ID",
+            "Type", "State", "Location", "Created At"
+        };
+
+        var grid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions(
+                "42,210,210,145,110,105,290"),
+            Margin = new Thickness(4)
+        };
+
+        for (int index = 0; index < columns.Length; index++)
+        {
+            if (index == 0)
+                continue;
+
+            var sortButton = MakeSortHeaderButton(
+                columns[index],
+                index,
+                _primarySortColumn,
+                _primarySortDescending,
+                OnPrimarySortHeaderClick);
+
+            Grid.SetColumn(sortButton, index);
+            grid.Children.Add(sortButton);
+        }
+
+        return new ListBoxItem
+        {
+            Content = grid,
+            IsEnabled = true,
+            Padding = new Thickness(8),
+            HorizontalContentAlignment =
+                HorizontalAlignment.Left
+        };
+    }
+
     private void RenderResources()
     {
         ResourceListBox.Items.Clear();
 
-        foreach (var resource in _visibleResources)
+        ResourceListBox.Items.Add(
+            CreatePrimaryLifecycleHeader());
+
+        foreach (var resource in SortResourceRows(
+                     _visibleResources,
+                     _primarySortColumn,
+                     _primarySortDescending,
+                     true))
         {
             ResourceListBox.Items.Add(
                 CreateResourceRow(resource));
@@ -560,7 +1062,7 @@ public partial class UniversalWorkbenchWindow : Window
         var grid = new Grid
         {
             ColumnDefinitions =
-                new ColumnDefinitions("42,2*,1.2*,1*,1*"),
+                new ColumnDefinitions("42,210,210,145,110,105,290"),
             Margin = new Thickness(4)
         };
 
@@ -572,36 +1074,44 @@ public partial class UniversalWorkbenchWindow : Window
             VerticalAlignment = VerticalAlignment.Center
         });
 
-        var identity = new StackPanel
-        {
-            Spacing = 2
-        };
-
-        identity.Children.Add(new TextBlock
+        var resourceName = new TextBlock
         {
             Text = resource.DisplayName,
             FontWeight = FontWeight.SemiBold,
-            Foreground = Brush("#172B4D")
-        });
+            Foreground = Brush("#172B4D"),
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            TextWrapping = TextWrapping.NoWrap,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(5, 0, 10, 0)
+        };
 
-        identity.Children.Add(new TextBlock
+        ToolTip.SetTip(resourceName, resource.DisplayName);
+        Grid.SetColumn(resourceName, 1);
+        grid.Children.Add(resourceName);
+
+        var resourceId = new TextBlock
         {
             Text = resource.NativeId,
-            FontSize = 10,
-            Foreground = Brush("#526581")
-        });
+            Foreground = Brush("#526581"),
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            TextWrapping = TextWrapping.NoWrap,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(5, 0, 10, 0)
+        };
 
-        Grid.SetColumn(identity, 1);
-        grid.Children.Add(identity);
+        ToolTip.SetTip(resourceId, resource.NativeId);
+        Grid.SetColumn(resourceId, 2);
+        grid.Children.Add(resourceId);
 
         var type = new TextBlock
         {
             Text = resource.ResourceType,
             Foreground = Brush("#526581"),
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = TextTrimming.CharacterEllipsis
         };
 
-        Grid.SetColumn(type, 2);
+        Grid.SetColumn(type, 3);
         grid.Children.Add(type);
 
         var state = new TextBlock
@@ -613,7 +1123,7 @@ public partial class UniversalWorkbenchWindow : Window
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        Grid.SetColumn(state, 3);
+        Grid.SetColumn(state, 4);
         grid.Children.Add(state);
 
         var location = new TextBlock
@@ -623,15 +1133,366 @@ public partial class UniversalWorkbenchWindow : Window
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        Grid.SetColumn(location, 4);
+        Grid.SetColumn(location, 5);
         grid.Children.Add(location);
+
+
+        var lifecyclePresentation =
+            ResolveCreatedAtPresentation(resource);
+
+        var createdAtCell = new TextBlock
+        {
+            Text = lifecyclePresentation.Value,
+            Foreground = Brush("#526581"),
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            TextWrapping = TextWrapping.NoWrap,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(5, 0, 10, 0)
+        };
+
+        ToolTip.SetTip(
+            createdAtCell,
+            lifecyclePresentation.Tooltip);
+
+        Grid.SetColumn(createdAtCell, 6);
+        grid.Children.Add(createdAtCell);
 
         return new ListBoxItem
         {
             Content = grid,
             Tag = resource,
-            Padding = new Thickness(8)
+            Padding = new Thickness(8),
+            HorizontalContentAlignment =
+                HorizontalAlignment.Left
         };
+    }
+
+    private static Grid CreateInventoryColumns()
+    {
+        return new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions(
+                "220,220,145,90,155,105,110,120,105,330,270,175"),
+            Margin = new Thickness(4)
+        };
+    }
+
+    private static TextBlock CreateInventoryCell(
+        string? value,
+        int column,
+        bool heading = false)
+    {
+        var text = new TextBlock
+        {
+            Text = string.IsNullOrWhiteSpace(value)
+                ? "—"
+                : value,
+            FontWeight = heading
+                ? FontWeight.SemiBold
+                : FontWeight.Normal,
+            Foreground = Brush(
+                heading ? "#172B4D" : "#526581"),
+            TextWrapping = TextWrapping.NoWrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(7, 3, 7, 3)
+        };
+
+        ToolTip.SetTip(text, value ?? "");
+
+        Grid.SetColumn(text, column);
+
+        return text;
+    }
+
+    private ListBoxItem CreateResourceInventoryHeader()
+    {
+        var grid = CreateInventoryColumns();
+
+        var columns = new[]
+        {
+            "Resource Name",
+            "Resource ID",
+            "Type",
+            "Provider",
+            "Account / Project",
+            "Region",
+            "Status",
+            "Availability Zone",
+            "Relationships",
+            "Created At",
+            "Last Known Activity",
+            "Discovered At"
+        };
+
+        for (var index = 0; index < columns.Length; index++)
+        {
+            var sortButton = MakeSortHeaderButton(
+                columns[index],
+                index,
+                _secondarySortColumn,
+                _secondarySortDescending,
+                OnSecondarySortHeaderClick);
+
+            Grid.SetColumn(sortButton, index);
+            grid.Children.Add(sortButton);
+        }
+
+        return new ListBoxItem
+        {
+            Content = grid,
+            IsEnabled = false,
+            Padding = new Thickness(8),
+            HorizontalContentAlignment =
+                HorizontalAlignment.Left
+        };
+    }
+
+
+    private static (string Value, string Tooltip)
+        ResolveCreatedAtPresentation(
+            InfrastructureResource resource)
+    {
+        if (resource.LifecycleEvidence?.VerifiedCreation
+            is { } evidence)
+        {
+            var value =
+                evidence.OccurredAt.ToLocalTime().ToString(
+                    "yyyy-MM-dd HH:mm:ss zzz",
+                    System.Globalization.CultureInfo.InvariantCulture);
+
+            return (
+                value,
+                "Verified creation evidence; source: " +
+                evidence.Source + "; time: " + value);
+        }
+
+        if (resource.Properties is { } properties &&
+            properties.TryGetValue(
+                "NativeLifecycle.CreationTimestamp",
+                out var raw) &&
+            properties.TryGetValue(
+                "NativeLifecycle.CreationLabel",
+                out var label) &&
+            properties.TryGetValue(
+                "NativeLifecycle.CreationSource",
+                out var source) &&
+            (label == "Launched" || label == "Created") &&
+            !string.IsNullOrWhiteSpace(source) &&
+            System.DateTimeOffset.TryParse(
+                raw,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind,
+                out var time))
+        {
+            var formatted = time.ToLocalTime().ToString(
+                "yyyy-MM-dd HH:mm:ss zzz",
+                System.Globalization.CultureInfo.InvariantCulture);
+
+            return (
+                label + ": " + formatted,
+                "Native provider timestamp; source: " +
+                source + "; not audit-verified; time: " +
+                formatted);
+        }
+
+        return (
+            "Not available",
+            "No verified creation evidence or supported " +
+            "native creation/launch timestamp.");
+    }
+
+private ListBoxItem CreateResourceInventoryRow(
+        InfrastructureResource resource)
+    {
+        var grid = CreateInventoryColumns();
+
+        var createdAtPresentation =
+            ResolveCreatedAtPresentation(resource);
+
+        var fields = new[]
+        {
+            resource.DisplayName,
+            resource.NativeId,
+            resource.ResourceType,
+            resource.ProviderId,
+            resource.AccountId,
+            resource.Location,
+            string.IsNullOrWhiteSpace(resource.State)
+                ? "Observed"
+                : resource.State,
+            resource.AvailabilityZone,
+            resource.Relationships.Count.ToString(),
+            // Original creation is not currently available
+            // as verified provider-neutral metadata.
+            createdAtPresentation.Value,
+            // No verified lifecycle event contract yet.
+            // Never infer events from current resource state.
+            resource.LifecycleEvidence?.LastVerifiedActivity?.OccurredAt is { } lastActivityAt
+                ? lastActivityAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                : "Not available",
+            resource.DiscoveredAt == default
+                ? "Not available"
+                : resource.DiscoveredAt.LocalDateTime.ToString(
+                    "yyyy-MM-dd HH:mm")
+        };
+
+        for (var index = 0; index < fields.Length; index++)
+        {
+            var cell = CreateInventoryCell(
+                fields[index],
+                index);
+
+            if (index == 0)
+            {
+                cell.FontWeight = FontWeight.SemiBold;
+                cell.Foreground = Brush("#172B4D");
+            }
+
+            if (index == 6)
+            {
+                cell.Foreground =
+                    StateBrush(resource.State);
+            }
+
+            if (index == 9)
+            {
+                ToolTip.SetTip(
+                    cell,
+                    createdAtPresentation.Tooltip);
+            }
+            else if (index == 10)
+            {
+                ToolTip.SetTip(
+                    cell,
+                    resource.LifecycleEvidence?.LastVerifiedActivity is { } activityEvidence
+                        ? "Verified activity evidence (" +
+                          activityEvidence.Source + "): " +
+                          activityEvidence.OccurredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz")
+                        : "No verified activity evidence available");
+            }
+            else if (index == 11 &&
+                     resource.DiscoveredAt != default)
+            {
+                ToolTip.SetTip(
+                    cell,
+                    "Discovery timestamp (local display): " +
+                    resource.DiscoveredAt.ToLocalTime().ToString(
+                        "yyyy-MM-dd HH:mm:ss zzz"));
+            }
+
+            grid.Children.Add(cell);
+        }
+
+        return new ListBoxItem
+        {
+            Content = grid,
+            Tag = resource,
+            Padding = new Thickness(8),
+            HorizontalContentAlignment =
+                HorizontalAlignment.Left
+        };
+    }
+
+    private bool _updatingSecondaryResourceFilters;
+
+    private void PopulateSecondaryResourceFilters()
+    {
+        if (_state is null)
+        {
+            return;
+        }
+
+        var oldDomain =
+            SecondaryDomainFilterComboBox.SelectedItem?.ToString();
+
+        var oldState =
+            SecondaryStateFilterComboBox.SelectedItem?.ToString();
+
+        _updatingSecondaryResourceFilters = true;
+
+        try
+        {
+            SecondaryDomainFilterComboBox.Items.Clear();
+            SecondaryDomainFilterComboBox.Items.Add("All domains");
+
+            foreach (var domain in _state.Resources
+                         .Select(resource => resource.DomainId)
+                         .Where(value => !string.IsNullOrWhiteSpace(value))
+                         .Distinct(StringComparer.OrdinalIgnoreCase)
+                         .OrderBy(value => value))
+            {
+                SecondaryDomainFilterComboBox.Items.Add(domain);
+            }
+
+            SecondaryStateFilterComboBox.Items.Clear();
+            SecondaryStateFilterComboBox.Items.Add("All states");
+
+            foreach (var state in _state.Resources
+                         .Select(resource =>
+                             string.IsNullOrWhiteSpace(resource.State)
+                                 ? "Observed"
+                                 : resource.State)
+                         .Distinct(StringComparer.OrdinalIgnoreCase)
+                         .OrderBy(value => value))
+            {
+                SecondaryStateFilterComboBox.Items.Add(state);
+            }
+
+            var domainIndex = 0;
+            for (var index = 1;
+                 index < SecondaryDomainFilterComboBox.ItemCount;
+                 index++)
+            {
+                if (string.Equals(
+                    SecondaryDomainFilterComboBox.Items[index]?.ToString(),
+                    oldDomain,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    domainIndex = index;
+                    break;
+                }
+            }
+
+            var stateIndex = 0;
+            for (var index = 1;
+                 index < SecondaryStateFilterComboBox.ItemCount;
+                 index++)
+            {
+                if (string.Equals(
+                    SecondaryStateFilterComboBox.Items[index]?.ToString(),
+                    oldState,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    stateIndex = index;
+                    break;
+                }
+            }
+
+            SecondaryDomainFilterComboBox.SelectedIndex = domainIndex;
+            SecondaryStateFilterComboBox.SelectedIndex = stateIndex;
+        }
+        finally
+        {
+            _updatingSecondaryResourceFilters = false;
+        }
+    }
+
+    private void SecondaryResourceFilter_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs e)
+    {
+        if (_updatingSecondaryResourceFilters || _state is null)
+        {
+            return;
+        }
+
+        if (_workbenchState.CurrentView.Equals(
+                "resources",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            RenderSecondaryResources();
+        }
     }
 
     private void RenderSecondaryResources()
@@ -646,8 +1507,26 @@ public partial class UniversalWorkbenchWindow : Window
             return;
         }
 
+        // Initialize choices only when the filter controls are empty.
+        // Never rebuild ComboBox.Items during SelectionChanged.
+        if (SecondaryDomainFilterComboBox.ItemCount == 0 ||
+            SecondaryStateFilterComboBox.ItemCount == 0)
+        {
+            PopulateSecondaryResourceFilters();
+        }
+
         var search =
             SecondaryWorkspaceSearchTextBox.Text?.Trim() ?? "";
+
+        var selectedDomain =
+            SecondaryDomainFilterComboBox.SelectedIndex > 0
+                ? SecondaryDomainFilterComboBox.SelectedItem?.ToString()
+                : null;
+
+        var selectedState =
+            SecondaryStateFilterComboBox.SelectedIndex > 0
+                ? SecondaryStateFilterComboBox.SelectedItem?.ToString()
+                : null;
 
         var resources =
             _state.Resources
@@ -655,6 +1534,20 @@ public partial class UniversalWorkbenchWindow : Window
                     InfrastructureResourceSearch.Matches(
                         resource,
                         search))
+                .Where(resource =>
+                    selectedDomain is null ||
+                    string.Equals(
+                        resource.DomainId,
+                        selectedDomain,
+                        StringComparison.OrdinalIgnoreCase))
+                .Where(resource =>
+                    selectedState is null ||
+                    string.Equals(
+                        string.IsNullOrWhiteSpace(resource.State)
+                            ? "Observed"
+                            : resource.State,
+                        selectedState,
+                        StringComparison.OrdinalIgnoreCase))
                 .OrderBy(resource =>
                     resource.DomainId)
                 .ThenBy(resource =>
@@ -663,10 +1556,17 @@ public partial class UniversalWorkbenchWindow : Window
                     resource.DisplayName)
                 .ToList();
 
-        foreach (var resource in resources)
+        SecondaryWorkspaceInventoryHeaderContent.Content =
+            CreateResourceInventoryHeader().Content;
+
+        foreach (var resource in SortResourceRows(
+                     resources,
+                     _secondarySortColumn,
+                     _secondarySortDescending,
+                     false))
         {
             SecondaryWorkspaceList.Items.Add(
-                CreateResourceRow(resource));
+                CreateResourceInventoryRow(resource));
         }
 
         SecondaryWorkspaceDescription.Text =
@@ -1329,6 +2229,8 @@ public partial class UniversalWorkbenchWindow : Window
         return summary;
     }
 
+    private bool _showFullInfrastructureTopology;
+
     private void RenderTopologySelection()
     {
         _details.RenderSelectedResource(
@@ -1336,7 +2238,9 @@ public partial class UniversalWorkbenchWindow : Window
             AssistantStatusText);
 
         TopologyWorkspace.Render(
-            _topology.Current);
+            _showFullInfrastructureTopology
+                ? _graphContext.BuildFullInfrastructureTopology()
+                : _topology.Current);
 
         TopologyWorkspace.SetNavigationState(
             _topology.CanGoBack,
@@ -1391,6 +2295,12 @@ public partial class UniversalWorkbenchWindow : Window
                 StringComparison.OrdinalIgnoreCase);
 
         SecondaryWorkspaceSearchTextBox.IsVisible =
+            isResources;
+
+        SecondaryWorkspaceResourcesFilters.IsVisible =
+            isResources;
+
+        SecondaryWorkspaceInventoryHeader.IsVisible =
             isResources;
 
         if (isResources)

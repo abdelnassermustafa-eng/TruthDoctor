@@ -133,7 +133,14 @@ public sealed class UX5462TopologyNavigationThemeTests
             .Select(attribute => attribute.Value)
             .ToArray();
 
-        Assert.Equal(50, namedControls.Length);
+        Assert.Equal(51, namedControls.Length);
+
+        // D5.8-F2: the one authorized new named control.
+        Assert.Equal(
+            "Button",
+            Named(document,
+                "TopologyRelationshipFiltersButton")
+                .Name.LocalName);
         Assert.Equal(
             namedControls.Length,
             namedControls.Distinct().Count());

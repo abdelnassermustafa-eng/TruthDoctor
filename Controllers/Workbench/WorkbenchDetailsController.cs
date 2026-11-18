@@ -119,6 +119,51 @@ public sealed class WorkbenchDetailsController
             "ARN",
             resource.Arn);
 
+
+        // Provider-reported native timestamps are not
+        // verified lifecycle audit events.
+        var nativeTimestampProperties = resource.Properties
+            .Where(property =>
+                (property.Key.EndsWith(
+                    "Time",
+                    System.StringComparison.OrdinalIgnoreCase) ||
+                 property.Key.EndsWith(
+                    "Date",
+                    System.StringComparison.OrdinalIgnoreCase) ||
+                 property.Key.EndsWith(
+                    "Timestamp",
+                    System.StringComparison.OrdinalIgnoreCase)) &&
+                System.DateTimeOffset.TryParse(
+                    property.Value,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind,
+                    out _))
+            .OrderBy(property => property.Key)
+            .ToList();
+
+        if (nativeTimestampProperties.Count > 0)
+        {
+            AddSeparator(detailsPanel);
+
+            AddSectionTitle(
+                detailsPanel,
+                "Native Timestamps (Provider-Reported)");
+
+            foreach (var property in nativeTimestampProperties)
+            {
+                var nativeLabel =
+                    System.Text.RegularExpressions.Regex.Replace(
+                        property.Key,
+                        "([a-z0-9])([A-Z])",
+                        "$1 $2");
+
+                AddDetail(
+                    detailsPanel,
+                    nativeLabel + " (native; not audit-verified)",
+                    property.Value);
+            }
+        }
+
         if (resource.Properties.Count > 0)
         {
             AddSeparator(detailsPanel);
@@ -380,6 +425,9 @@ public sealed class WorkbenchDetailsController
         string label,
         string? value)
     {
+        // R7_SINGLE_LINE_ROW: Preserve the tested Grid contract.
+        // Both cells remain on one line. The outer details viewer
+        // provides horizontal scrolling for wide AWS attributes.
         if (string.IsNullOrWhiteSpace(value))
         {
             return;
@@ -387,27 +435,28 @@ public sealed class WorkbenchDetailsController
 
         var grid = new Grid
         {
-            ColumnDefinitions =
-                new ColumnDefinitions("120,*")
+            ColumnDefinitions = new ColumnDefinitions("Auto,Auto")
         };
 
-        grid.Children.Add(
-            new TextBlock
-            {
-                Text = label,
-                Foreground = Brush("#526581"),
-                TextWrapping = TextWrapping.Wrap
-            });
+        grid.Children.Add(new TextBlock
+        {
+            Text = label,
+            MinWidth = 240,
+            TextWrapping = TextWrapping.NoWrap,
+            FontSize = 12,
+            Foreground = Brush("#526581")
+        });
 
         var valueText = new TextBlock
         {
             Text = value,
-            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(16, 0, 0, 0),
+            TextWrapping = TextWrapping.NoWrap,
+            FontSize = 12,
             Foreground = Brush("#172B4D")
         };
 
         Grid.SetColumn(valueText, 1);
-
         grid.Children.Add(valueText);
 
         detailsPanel.Children.Add(grid);

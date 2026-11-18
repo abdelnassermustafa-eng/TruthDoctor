@@ -88,7 +88,7 @@ public sealed class UX543WorkbenchPanelTests
         var rail = Assert.Single(
             details.Ancestors().Where(element =>
                 element.Name.LocalName == "Border" &&
-                (string?)element.Attribute("Grid.Column") == "2"));
+                (string?)element.Attribute("Grid.Column") == "3"));
 
         AssertSemanticPanel(rail);
 

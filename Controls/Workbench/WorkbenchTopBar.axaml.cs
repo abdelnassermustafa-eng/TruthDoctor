@@ -46,6 +46,10 @@ public partial class WorkbenchTopBar : UserControl
 
         ProviderAccountComboBox.Items.Add(
             $"{ProviderVisualFactory.ResolveIcon(providerVisual.IconKey)}  " +
+            providerVisual.DisplayName);
+
+        ToolTip.SetTip(
+            ProviderAccountComboBox,
             $"{providerVisual.DisplayName} · " +
             $"{accountDisplay} ({accountId})");
 
@@ -92,6 +96,36 @@ public partial class WorkbenchTopBar : UserControl
             new SolidColorBrush(Color.Parse("#86EFAC"));
 
         _updatingContext = false;
+    }
+
+    /// <summary>
+    /// Displays an authenticated standalone provider connection.
+    /// This does not assert that an HTTP backend is online.
+    /// </summary>
+    public void SetStandaloneProviderConnected()
+    {
+        BackendIndicator.Background =
+            new SolidColorBrush(Color.Parse("#22C55E"));
+
+        BackendStatusText.Text =
+            "Standalone provider connected";
+
+        BackendStatusText.Foreground =
+            new SolidColorBrush(Color.Parse("#86EFAC"));
+    }
+
+    /// <summary>
+    /// An offline fixture is ready without being cloud-authenticated.
+    /// </summary>
+    public void SetOfflineFixtureStatus()
+    {
+        BackendIndicator.Background =
+            new SolidColorBrush(Color.Parse("#0D9488"));
+
+        BackendStatusText.Text = "Offline demo ready";
+
+        BackendStatusText.Foreground =
+            new SolidColorBrush(Color.Parse("#99F6E4"));
     }
 
     public void SetDisconnected()

@@ -96,25 +96,29 @@
                 BorderThickness="0,0,0,1">
 
             <Grid Margin="12"
-                  ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,225,180,42,155"
+                  ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,280,180,42,155"
                   ColumnSpacing="9">
 
                 <Button Grid.Column="0"
+                        Classes="td-secondary"
                         Content="⌁  Connect"
                         Padding="14,8"
                         Click="ConnectButton_OnClick"/>
 
                 <Button Grid.Column="1"
+                        Classes="td-secondary"
                         Content="↻  Refresh"
                         Padding="14,8"
                         Click="RefreshButton_OnClick"/>
 
                 <Button Grid.Column="2"
+                        Classes="td-secondary"
                         Content="◎  Discover"
                         Padding="14,8"
                         Click="DiscoverButton_OnClick"/>
 
                 <Button Grid.Column="3"
+                        Classes="td-secondary"
                         Content="⚙  Operate"
                         Padding="14,8"
                         Click="OperateButton_OnClick"/>

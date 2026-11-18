@@ -3,6 +3,132 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Class="TruthDoctor.Controls.Topology.TopologyCanvas">
 
+    <!-- F4 scoped topology action presentation. -->
+    <UserControl.Styles>
+        <Style Selector="Button.td-topology-teal:pointerover">
+            <Setter Property="Background" Value="#115E59"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:pressed">
+            <Setter Property="Background" Value="#134E4A"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:disabled">
+            <Setter Property="Background" Value="#DCE8E5"/>
+            <Setter Property="Foreground" Value="#475569"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:disabled:pointerover">
+            <Setter Property="Background" Value="#DCE8E5"/>
+            <Setter Property="Foreground" Value="#475569"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:focus-visible">
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#115E59"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#134E4A"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#DCE8E5"/>
+            <Setter Property="Foreground" Value="#475569"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal:disabled:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#DCE8E5"/>
+            <Setter Property="Foreground" Value="#475569"/>
+        </Style>
+
+        <!-- F5.3: only the relationship flyout may
+             exceed Fluent's default presenter width. -->
+        <Style Selector="FlyoutPresenter.td-relationship-wide">
+            <Setter Property="MaxWidth" Value="1200"/>
+        </Style>
+
+        <!-- F6.2: readable secondary toolbar states,
+             scoped to the Topology canvas only. -->
+        <Style Selector="Button.td-topology-secondary">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:pointerover">
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="BorderBrush" Value="#94A3B8"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:pressed">
+            <Setter Property="Background" Value="#CBD5E1"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:focus-visible">
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:disabled">
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:disabled:pointerover">
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#CBD5E1"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-secondary:disabled:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E2E8F0"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+
+        <!-- F6.4-D: preserve the right-action teal
+             hierarchy even while Clear path is disabled.
+             The command remains disabled until a path
+             exists; this style changes appearance only. -->
+        <Style Selector="Button.td-topology-teal.td-topology-clear-path:disabled">
+            <Setter Property="Background" Value="#115E59"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#14B8A6"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal.td-topology-clear-path:disabled:pointerover">
+            <Setter Property="Background" Value="#115E59"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#14B8A6"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal.td-topology-clear-path:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#115E59"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.td-topology-teal.td-topology-clear-path:disabled:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#115E59"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+    </UserControl.Styles>
+
+
     <Border
         Background="#0F172A"
         BorderBrush="#1E293B"
@@ -18,51 +144,47 @@
                 BorderBrush="{DynamicResource TD.BorderBrush}"
                 BorderThickness="0,0,0,1">
 
-                <Grid
-                    ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto"
-                    ColumnSpacing="8">
-
-                    <Button
-                        Grid.Column="0"
+                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+<StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center" Margin="0,0,4,0">
+<Button AutomationProperties.Name="Back — previous topology view" ToolTip.Tip="Back — previous topology view" Height="32" Width="40"
+                        Margin="0,0,6,8"
                         Name="TopologyBackButton"
-                        Content="←  Back"
+                        Content="←"
                         IsEnabled="False"
-                        Padding="12,6"
+                        Padding="8,5"
                         Background="{DynamicResource TD.SurfaceBrush}"
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyBackButton_OnClick"/>
-
-                    <Button
-                        Grid.Column="1"
+<Button AutomationProperties.Name="Forward — next topology view" ToolTip.Tip="Forward — next topology view" Height="32" Width="40"
+                        Margin="0,0,6,8"
                         Name="TopologyForwardButton"
-                        Content="Forward  →"
+                        Content="→"
                         IsEnabled="False"
-                        Padding="12,6"
+                        Padding="8,5"
                         Background="{DynamicResource TD.SurfaceBrush}"
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyForwardButton_OnClick"/>
-
-                    <Button
-                        Grid.Column="2"
+<Button AutomationProperties.Name="Home — topology overview" ToolTip.Tip="Home — topology overview" Height="32" Width="40"
+                        Margin="0,0,6,8"
                         Name="TopologyHomeButton"
-                        Content="⌂  Home"
+                        Content="⌂"
                         IsEnabled="False"
-                        Padding="12,6"
+                        Padding="8,5"
                         Background="{DynamicResource TD.SurfaceBrush}"
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyHomeButton_OnClick"/>
-
-                    <TextBlock
-                        Grid.Column="3"
+</StackPanel>
+<StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center" Margin="0,0,4,0">
+<TextBlock
+                        Margin="0,0,8,8"
                         Text="Depth"
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         VerticalAlignment="Center"/>
-
-                    <ComboBox
-                        Grid.Column="4"
+<ComboBox
+                        Margin="0,0,8,8"
                         Name="TopologyDepthComboBox"
                         Width="92"
                         SelectedIndex="1"
@@ -80,9 +202,13 @@
                             Content="3 hops"
                             Tag="3"/>
                     </ComboBox>
-
+<StackPanel Margin="0,0,8,8" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                        <ComboBox x:Name="TopologyScopeComboBox" Width="180" SelectedIndex="1" >
+                            <ComboBoxItem Content="Full Infrastructure"/>
+                            <ComboBoxItem Content="Resource Neighborhood"/>
+                        </ComboBox>
                     <TextBlock
-                        Grid.Column="5"
+
                         Name="TopologyExportStatusText"
                         Text=""
                         MaxWidth="230"
@@ -90,15 +216,16 @@
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"/>
-
-                    <TextBlock
-                        Grid.Column="6"
+                    </StackPanel>
+</StackPanel>
+<StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center" Margin="0,0,4,0">
+<TextBlock
+                        Margin="0,0,8,8"
                         Text="View"
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         VerticalAlignment="Center"/>
-
-                    <Button
-                        Grid.Column="7"
+<Button
+                        Margin="0,0,8,8"
                         Name="TopologyZoomOutButton"
                         Content="−"
                         Width="36"
@@ -107,9 +234,8 @@
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyZoomOutButton_OnClick"/>
-
-                    <Button
-                        Grid.Column="8"
+<Button
+                        Margin="0,0,8,8"
                         Name="TopologyResetZoomButton"
                         Content="100%"
                         MinWidth="62"
@@ -118,9 +244,8 @@
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyResetZoomButton_OnClick"/>
-
-                    <Button
-                        Grid.Column="9"
+<Button
+                        Margin="0,0,8,8"
                         Name="TopologyZoomInButton"
                         Content="+"
                         Width="36"
@@ -129,22 +254,75 @@
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         Click="TopologyZoomInButton_OnClick"/>
-
-                    <Button
-                        Grid.Column="10"
+<Button Width="66" Height="32" Classes="td-topology-teal"
+                        Margin="0,0,8,8"
                         Name="TopologyFitButton"
                         Content="Fit"
-                        Padding="12,6"
-                        Background="#1D4ED8"
+                        Padding="12,5"
+                        Background="#0F766E"
                         Foreground="White"
-                        BorderBrush="#3B82F6"
+                        BorderBrush="#14B8A6"
                         Click="TopologyFitButton_OnClick"/>
+</StackPanel>
+</WrapPanel>
+            </Border>
 
-                    <Button
-                        Grid.Column="11"
+            <Border Grid.Row="1" Padding="10,7"
+            Background="#0B1728"
+            BorderBrush="#223149"
+            BorderThickness="0,0,0,1">
+            <Grid RowDefinitions="Auto,Auto"
+                  ColumnDefinitions="Auto,*,Auto"
+                  RowSpacing="8" ColumnSpacing="10">
+                <WrapPanel Grid.Row="0"
+                           Grid.Column="0"
+                           Grid.ColumnSpan="2"
+                           Orientation="Horizontal">
+<TextBlock Margin="0,0,8,0" Width="51"
+                            Text="Find"
+                            FontWeight="SemiBold"
+                            Foreground="#E2E8F0"
+                            VerticalAlignment="Center"/>
+<TextBox Margin="0,0,10,0"
+                            Name="TopologySearchTextBox"
+                            Width="260"
+                            Background="{DynamicResource TD.SurfaceBrush}"
+                            Foreground="{DynamicResource TD.TextPrimaryBrush}"
+                            BorderBrush="{DynamicResource TD.BorderBrush}"
+                            Height="34"
+                            MinWidth="120"
+                            Watermark="Search this topology..."/>
+<Button Margin="0,0,10,0" Classes="td-topology-secondary"
+                            Name="TopologyPreviousMatchButton"
+                            Content="← Previous"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Click="TopologyPreviousMatchButton_OnClick" Width="100" Height="32"/>
+<Button Margin="0,0,10,0" Classes="td-topology-secondary"
+                            Name="TopologyNextMatchButton"
+                            Content="Next →"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Click="TopologyNextMatchButton_OnClick" Width="100" Height="32"/>
+<TextBlock
+                            Name="TopologySearchStatusText"
+                            Text=""
+                            MinWidth="105"
+                            MaxWidth="170"
+                            TextTrimming="CharacterEllipsis"
+                            Foreground="#7F9AB8"
+                            VerticalAlignment="Center"/>
+<Button Classes="td-topology-secondary"
+                            Name="TopologyClearSearchButton"
+                            Content="Clear"
+                            IsEnabled="False"
+                            Padding="10,5"
+                            Click="TopologyClearSearchButton_OnClick"/>
+                </WrapPanel>
+<Button Grid.Column="2" Grid.Row="0" Width="100" Height="32" Classes="td-topology-teal"
                         Name="TopologyExportButton"
                         Content="Export ▾"
-                        Padding="12,6"
+                        Padding="12,5"
                         Background="#0F766E"
                         Foreground="White"
                         BorderBrush="#14B8A6">
@@ -161,116 +339,48 @@
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
-                </Grid>
-            </Border>
-
-            <Border
-                Grid.Row="1"
-                Padding="10,7"
-                Background="#0B1728"
-                BorderBrush="#223149"
-                BorderThickness="0,0,0,1">
-
-                <Grid
-                    RowDefinitions="Auto,Auto"
-                    RowSpacing="7">
-
-                    <Grid
-                        Grid.Row="0"
-                        ColumnDefinitions="88,*,Auto,Auto,Auto,Auto"
-                        ColumnSpacing="8">
-
-                        <TextBlock
-                            Grid.Column="0"
-                            Text="Find"
-                            FontWeight="SemiBold"
-                            Foreground="#E2E8F0"
-                            VerticalAlignment="Center"/>
-
-                        <TextBox
-                            Grid.Column="1"
-                            Name="TopologySearchTextBox"
-                            Background="{DynamicResource TD.SurfaceBrush}"
-                            Foreground="{DynamicResource TD.TextPrimaryBrush}"
-                            BorderBrush="{DynamicResource TD.BorderBrush}"
-                            Height="34"
-                            MinWidth="120"
-                                                        HorizontalAlignment="Stretch"
-                            Watermark="Search this topology..."/>
-
-                        <Button
-                            Grid.Column="2"
-                            Name="TopologyPreviousMatchButton"
-                            Content="← Previous"
-                            IsEnabled="False"
-                            Padding="10,5"
-                            Background="#15263D"
-                            Foreground="#E2E8F0"
-                            BorderBrush="#334A68"
-                            Click="TopologyPreviousMatchButton_OnClick"/>
-
-                        <Button
-                            Grid.Column="3"
-                            Name="TopologyNextMatchButton"
-                            Content="Next →"
-                            IsEnabled="False"
-                            Padding="10,5"
-                            Background="#15263D"
-                            Foreground="#E2E8F0"
-                            BorderBrush="#334A68"
-                            Click="TopologyNextMatchButton_OnClick"/>
-
-                        <TextBlock
-                            Grid.Column="4"
-                            Name="TopologySearchStatusText"
-                            Text="Search current graph"
-                            MinWidth="105"
-                            MaxWidth="170"
-                            TextTrimming="CharacterEllipsis"
-                            Foreground="#7F9AB8"
-                            VerticalAlignment="Center"/>
-
-                        <Button
-                            Grid.Column="5"
-                            Name="TopologyClearSearchButton"
-                            Content="Clear"
-                            IsEnabled="False"
-                            Padding="10,5"
-                            Background="#15263D"
-                            Foreground="#E2E8F0"
-                            BorderBrush="#334A68"
-                            Click="TopologyClearSearchButton_OnClick"/>
-                    </Grid>
-
-                    <Grid
-                        Grid.Row="1"
-                        ColumnDefinitions="88,Auto,*,Auto,Auto,Auto"
-                        ColumnSpacing="8">
-
-                        <TextBlock
-                            Grid.Column="0"
+                <StackPanel Grid.Row="1" Grid.Column="0"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+<TextBlock
                             Text="Domain"
                             FontWeight="SemiBold"
                             Foreground="#E2E8F0"
                             VerticalAlignment="Center"/>
-
-                        <ComboBox
-                            Grid.Column="1"
+<ComboBox
                             Name="TopologyDomainComboBox"
                             Background="{DynamicResource TD.SurfaceBrush}"
                             Foreground="{DynamicResource TD.TextPrimaryBrush}"
                             BorderBrush="{DynamicResource TD.BorderBrush}"
-                            Width="180"
-                            IsEnabled="False"/>
-
-                        <TextBlock
-                            Grid.Column="3"
+                            Width="260"
+                            IsEnabled="False">
+                            <ComboBox.Resources>
+                                <SolidColorBrush
+                                    x:Key="ComboBoxBackgroundDisabled"
+                                    Color="#F1F5F9"/>
+                                <SolidColorBrush
+                                    x:Key="ComboBoxForegroundDisabled"
+                                    Color="#334155"/>
+                                <SolidColorBrush
+                                    x:Key="ComboBoxBorderBrushDisabled"
+                                    Color="#94A3B8"/>
+                                <SolidColorBrush
+                                    x:Key="ComboBoxDropDownGlyphForegroundDisabled"
+                                    Color="#475569"/>
+                            </ComboBox.Resources>
+                        </ComboBox>
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0" Grid.Row="1" Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Spacing="8">
+<TextBlock
                             Text="Layout"
                             Foreground="#7F9AB8"
                             VerticalAlignment="Center"/>
-
-                        <ComboBox
-                            Grid.Column="4"
+<ComboBox
                             Name="TopologyLayoutComboBox"
                             Background="{DynamicResource TD.SurfaceBrush}"
                             Foreground="{DynamicResource TD.TextPrimaryBrush}"
@@ -294,106 +404,74 @@
                                 Content="Domains"
                                 Tag="Domain"/>
                         </ComboBox>
-
-                        <Button
-                            Grid.Column="5"
+                </StackPanel>
+<Button Grid.Column="2" Grid.Row="1" Width="100" Height="32" Classes="td-topology-teal"
                             Name="TopologyArrangeButton"
                             Content="Arrange"
-                            Padding="11,5"
+                            Padding="12,5"
                             Background="#0F766E"
                             Foreground="White"
                             BorderBrush="#14B8A6"
                             Click="TopologyArrangeButton_OnClick"/>
-                    </Grid>
-                </Grid>
-            </Border>
+            </Grid>
+        </Border>
 
-            <Border
-                Grid.Row="2"
-                Padding="10,7"
-                Background="#0B1728"
-                BorderBrush="#223149"
-                BorderThickness="0,0,0,1">
+            <Border Grid.Row="2" Padding="10,7"
+            Background="#0B1728"
+            BorderBrush="#223149"
+            BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="90,209,0,100,100,*,100"
+                  RowDefinitions="Auto,Auto"
+                  ColumnSpacing="10">
+<TextBlock Grid.Column="0" Grid.Row="0"
 
-                <Grid
-                    RowDefinitions="Auto,Auto"
-                    ColumnDefinitions="88,*,Auto,Auto,Auto,Auto"
-                    ColumnSpacing="8"
-                    RowSpacing="4">
 
-                    <TextBlock
-                        Grid.Row="0"
-                        Grid.Column="0"
                         Text="Saved views"
                         FontWeight="SemiBold"
                         Foreground="#E2E8F0"
                         VerticalAlignment="Center"/>
+<ComboBox Grid.Column="1" Grid.Row="0"
 
-                    <TextBlock
-                        Grid.Row="0"
-                        Grid.Column="2"
-                        Name="TopologySavedViewCountText"
-                        Text="0"
-                        MinWidth="24"
-                        Padding="7,2"
-                        Background="#15263D"
-                        Foreground="#BAE6FD"
-                        TextAlignment="Center"
-                        VerticalAlignment="Center"/>
 
-                    <ComboBox
-                        Grid.Row="0"
-                        Grid.Column="1"
                         Name="TopologySavedViewComboBox"
                         Background="{DynamicResource TD.SurfaceBrush}"
                         Foreground="{DynamicResource TD.TextPrimaryBrush}"
                         BorderBrush="{DynamicResource TD.BorderBrush}"
                         MinWidth="180"
                         MaxDropDownHeight="320"
-                        HorizontalAlignment="Stretch"
-                        SelectionChanged="TopologySavedViewComboBox_OnSelectionChanged">
+                        SelectionChanged="TopologySavedViewComboBox_OnSelectionChanged" Width="209">
 
                         <ComboBoxItem
                             Content="Select a saved view..."
                             Tag=""
                             IsEnabled="False"/>
                     </ComboBox>
+<TextBlock Grid.Column="5" Grid.Row="0" MaxWidth="150"
 
-                    <Button
-                        Grid.Row="0"
-                        Grid.Column="3"
+
+
+                        Name="TopologySavedViewStatusText"
+                        Text="No saved views"
+                        Foreground="#7F9AB8"
+                        TextTrimming="CharacterEllipsis"
+                        VerticalAlignment="Center"/>
+<Button Classes="td-topology-secondary" Grid.Column="3" Grid.Row="0"
+
+
                         Name="TopologyLoadViewButton"
-                        Background="{DynamicResource TD.SurfaceBrush}"
-                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
-                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Content="Load"
                         MinWidth="68"
                         Padding="12,5"
                         IsEnabled="False"
-                        Click="TopologyLoadViewButton_OnClick"/>
+                        Click="TopologyLoadViewButton_OnClick" Width="100" Height="32"/>
+<Button Classes="td-topology-secondary" Grid.Column="4" Grid.Row="0"
 
-                    <Button
-                        Grid.Row="0"
-                        Grid.Column="4"
-                        Name="TopologySaveViewButton"
-                        Content="Save view"
-                        Padding="12,5"
-                        Background="#0F766E"
-                        Foreground="White"
-                        BorderBrush="#14B8A6"
-                        Click="TopologySaveViewButton_OnClick"/>
 
-                    <Button
-                        Grid.Row="0"
-                        Grid.Column="5"
                         Name="TopologyManageViewButton"
-                        Background="{DynamicResource TD.SurfaceBrush}"
-                        Foreground="{DynamicResource TD.TextPrimaryBrush}"
-                        BorderBrush="{DynamicResource TD.BorderBrush}"
                         Content="Manage ▾"
                         MinWidth="86"
                         Padding="12,5"
-                        IsEnabled="False">
+                        IsEnabled="False" Width="100" Height="32">
 
                         <Button.Flyout>
                             <MenuFlyout>
@@ -411,18 +489,29 @@
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
+<Button Grid.Column="6" Grid.Row="0" Width="100" Height="32" Classes="td-topology-teal"
 
-                    <TextBlock
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Grid.ColumnSpan="5"
-                        Name="TopologySavedViewStatusText"
-                        Text="No saved views"
-                        Foreground="#7F9AB8"
-                        TextTrimming="CharacterEllipsis"
+
+                        Name="TopologySaveViewButton"
+                        Content="Save view"
+                        Padding="12,5"
+                        Background="#0F766E"
+                        Foreground="White"
+                        BorderBrush="#14B8A6"
+                        Click="TopologySaveViewButton_OnClick"/>
+<TextBlock IsVisible="False" Grid.Column="2" Grid.Row="1"
+
+
+                        Name="TopologySavedViewCountText"
+                        Text="0"
+                        MinWidth="24"
+                        Padding="7,2"
+                        Background="#15263D"
+                        Foreground="#BAE6FD"
+                        TextAlignment="Center"
                         VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
+            </Grid>
+        </Border>
 
             <Border
                 Grid.Row="3"
@@ -447,14 +536,14 @@
                             Foreground="#E2E8F0"
                             VerticalAlignment="Center"/>
 
-                        <Button
+                        <Button Height="32" Classes="td-topology-teal"
                             Grid.Column="1"
                             Name="TopologyStartPathButton"
                             Content="Start path"
                             Padding="12,5"
-                            Background="#1D4ED8"
+                            Background="#0F766E"
                             Foreground="White"
-                            BorderBrush="#3B82F6"
+                            BorderBrush="#14B8A6"
                             Click="TopologyStartPathButton_OnClick"/>
 
                         <TextBlock
@@ -465,15 +554,12 @@
                             TextWrapping="Wrap"
                             VerticalAlignment="Center"/>
 
-                        <Button
+                        <Button ToolTip.Tip="Clear the current path when one exists" BorderBrush="#14B8A6" Foreground="White" Background="#0F766E" Width="100" MinWidth="100" Height="32" Classes="td-topology-teal td-topology-clear-path"
                             Grid.Column="3"
                             Name="TopologyClearPathButton"
                             Content="Clear path"
                             IsEnabled="False"
-                            Padding="10,5"
-                            Background="#15263D"
-                            Foreground="#E2E8F0"
-                            BorderBrush="#334A68"
+                            Padding="12,5"
                             Click="TopologyClearPathButton_OnClick"/>
                     </Grid>
 
@@ -503,118 +589,106 @@
                 </Grid>
             </Border>
 
-            <Border
-                Grid.Row="4"
-                Padding="10,6"
-                Background="#0D1B30"
-                BorderBrush="#223149"
-                BorderThickness="0,0,0,1">
-
-                <Grid
-                    RowDefinitions="Auto,Auto"
-                    RowSpacing="5">
-
-                    <StackPanel
-                        Grid.Row="0"
-                        Orientation="Horizontal"
-                        Spacing="13"
-                        VerticalAlignment="Center">
-
-                        <TextBlock
-                            Text="Relationships"
-                            FontWeight="SemiBold"
-                            Foreground="#E2E8F0"
-                            VerticalAlignment="Center"/>
-
-                        <CheckBox
+            <Border Grid.Row="4" Padding="10,6"
+            Background="{DynamicResource TD.SurfaceBrush}"
+            BorderBrush="{DynamicResource TD.BorderBrush}"
+            BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto"
+                  ColumnSpacing="10"
+                  VerticalAlignment="Center">
+<Button Grid.Column="0"
+                            Name="TopologyRelationshipFiltersButton"
+                            Classes="td-secondary"
+                            Content="Relationships  ▾"
+                            Padding="14,7"
+                            Background="#FFFFFF"
+                            Foreground="#0F172A"
+                            BorderBrush="#CBD5E1"><Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="td-relationship-wide">
+                <Border Padding="12,10"
+                        Background="#FFFFFF"
+                        BorderBrush="#CBD5E1"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center">
+<CheckBox
                             Name="AllRelationshipFilter"
                             Content="All"
                             IsChecked="True"
-                            Foreground="#CBD5E1"
+                            Foreground="#334155"
                             Click="AllRelationshipFilter_OnClick"/>
-
-                        <CheckBox
+<CheckBox
                             Name="ContainmentFilter"
                             Content="Containment"
                             IsChecked="True"
-                            Foreground="#A78BFA"
+                            Foreground="#6D28D9"
                             Click="RelationshipFilter_OnClick"/>
-
-                        <CheckBox
+<CheckBox
                             Name="PlacementFilter"
                             Content="Placement"
                             IsChecked="True"
-                            Foreground="#60A5FA"
+                            Foreground="#1D4ED8"
                             Click="RelationshipFilter_OnClick"/>
-
-                        <CheckBox
+<CheckBox
                             Name="DependencyFilter"
                             Content="Dependency"
                             IsChecked="True"
-                            Foreground="#FBBF24"
+                            Foreground="#92400E"
                             Click="RelationshipFilter_OnClick"/>
-
-                        <CheckBox
+<CheckBox
                             Name="ConnectivityFilter"
                             Content="Connectivity"
                             IsChecked="True"
-                            Foreground="#22D3EE"
+                            Foreground="#0E7490"
                             Click="RelationshipFilter_OnClick"/>
-
-                        <CheckBox
+<CheckBox
                             Name="SecurityFilter"
                             Content="Security"
                             IsChecked="True"
-                            Foreground="#FB7185"
+                            Foreground="#BE123C"
                             Click="RelationshipFilter_OnClick"/>
-
-                        <CheckBox
+<CheckBox
                             Name="TrafficFilter"
                             Content="Traffic"
                             IsChecked="True"
-                            Foreground="#34D399"
+                            Foreground="#047857"
                             Click="RelationshipFilter_OnClick"/>
-                    </StackPanel>
+<CheckBox
 
-                    <Grid
-                        Grid.Row="1"
-                        ColumnDefinitions="Auto,Auto,Auto,*,Auto"
-                        ColumnSpacing="13">
-
-                        <CheckBox
-                            Grid.Column="0"
                             Name="AssociationFilter"
                             Content="Association"
                             IsChecked="True"
-                            Foreground="#C084FC"
+                            Foreground="#7E22CE"
                             Click="RelationshipFilter_OnClick"/>
+<CheckBox
 
-                        <CheckBox
-                            Grid.Column="1"
                             Name="OtherFilter"
                             Content="Other"
                             IsChecked="True"
-                            Foreground="#94A3B8"
+                            Foreground="#475569"
                             Click="RelationshipFilter_OnClick"/>
+                    </StackPanel>
+                </Border>
+            </Flyout>
+        </Button.Flyout></Button>
+<Button Grid.Column="1" Grid.Row="0" Height="32" Classes="td-secondary"
 
-                        <TextBlock
-                            Grid.Column="2"
+                            Content="Reset"
+                            Padding="12,5"
+                            Background="#FFFFFF"
+                            Foreground="#0F172A"
+                            BorderBrush="#CBD5E1"
+                            Click="ResetRelationshipFilters_OnClick"/>
+<TextBlock HorizontalAlignment="Right" Grid.Column="3" Grid.Row="0"
+
                             Name="RelationshipCountText"
                             Text="0 nodes · 0/0 edges"
-                            Foreground="#7F9AB8"
+                            Foreground="#64748B"
                             VerticalAlignment="Center"/>
-
-                        <Button
-                            Grid.Column="4"
-                            Content="Reset"
-                            Padding="10,4"
-                            Background="#15263D"
-                            Foreground="#E2E8F0"
-                            BorderBrush="#334A68"
-                            Click="ResetRelationshipFilters_OnClick"/>
-                    </Grid>
-                </Grid>
-            </Border>
+            </Grid>
+        </Border>
 
             <Grid
                 Grid.Row="5">

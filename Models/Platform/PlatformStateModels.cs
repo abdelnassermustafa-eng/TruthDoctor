@@ -141,6 +141,13 @@ public sealed class InfrastructureResource
     [JsonPropertyName("capabilities")]
     public List<string> Capabilities { get; set; } = [];
 
+    // Optional provider-neutral lifecycle evidence.
+    // Absence does not mean no lifecycle events occurred.
+    [JsonPropertyName("lifecycleEvidence")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ResourceLifecycleEvidenceSet? LifecycleEvidence
+    { get; set; }
+
     [JsonPropertyName("discoveredAt")]
     public DateTimeOffset DiscoveredAt { get; set; }
 }

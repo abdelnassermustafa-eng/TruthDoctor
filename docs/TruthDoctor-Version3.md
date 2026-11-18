@@ -1378,3 +1378,139 @@ That promise governs every future provider, workspace, operation, report, automa
 ---
 
 **END OF AUTHORITATIVE ROADMAP v3.1**
+
+## G3.27A — Standalone Desktop and Universal Provider Deployment
+
+**Status:** Planned. G3.28 remains paused.
+
+### Product objective
+
+TruthDoctor V3 shall be a self-contained installable desktop
+application for macOS, Windows, and Linux.
+
+The desktop shall own all required backend capabilities and
+shall not require running, installing, or separately starting
+the historical TruthApi application.
+
+### Development checkpoints
+
+1. G3.27A.1 — External backend dependency inventory
+2. G3.27A.2 — TruthDoctor-owned backend contracts
+3. G3.27A.3 — Independent AWS authentication and connectivity
+4. G3.27A.4 — Resource discovery and provider-service migration
+5. G3.27A.5 — Integrated application/backend lifecycle
+6. G3.27A.6 — Universal Provider Framework and package registry
+7. G3.27A.7 — Multi-select provider installation
+8. G3.27A.8 — Provider connection and discovery orchestration
+9. G3.27A.9 — G3.21–G3.27 functional acceptance
+10. G3.27A.10 — Cross-platform packaging and clean-machine testing
+11. G3.27A.11 — Controlled publication and release acceptance
+
+### Installation contract
+
+The installer shall include TruthDoctor's user interface,
+backend services, provider framework, and required runtime.
+
+It shall allow users to select one, several, or all supported
+provider packages by independent checkboxes.
+
+AWS shall be recommended by default but not mandatory.
+
+Only verified, compatible and release-approved provider
+packages shall be offered for executable installation.
+
+Selected packages shall be installed with integrity,
+signature, compatibility, dependency and failure checks.
+
+Users shall be able to add and manage provider packages
+after initial application installation.
+
+### Provider connection and discovery
+
+Installing a provider does not authenticate or connect it.
+
+After installation, the user shall configure provider
+connections, authenticate securely, and authorize discovery.
+
+Automatic discovery shall be user-configurable per connection.
+
+The application shall support explicit Discover Now and
+Discover on Launch policies.
+
+Scheduled Discovery remains a separately validated capability.
+
+Multiple connected providers shall be discoverable and
+visualizable together where their capabilities support it.
+
+Discovery shall default to read-only behavior.
+
+### Preservation and acceptance
+
+The historical TruthApi project must remain unchanged.
+
+All G3.21–G3.27 implementation and architecture contracts
+must be preserved.
+
+Full end-to-end functional acceptance remains mandatory
+before declaring TruthDoctor production-ready.
+
+Existing desktop installations must not be replaced
+without explicit approval and rollback safeguards.
+
+## G3.27B — Browser Application and Enterprise Web Access
+
+**Status:** Planned, not yet implemented.
+
+TruthDoctor V3 shall also support a securely hosted browser
+edition accessed through HTTPS.
+
+The web edition shall reuse the same domain, infrastructure,
+provider and application-service contracts wherever practical.
+
+### Development checkpoints
+
+1. G3.27B.1 — Browser requirements and architecture
+2. G3.27B.2 — Shared service and API contracts
+3. G3.27B.3 — Browser Workbench and Professional Light UI
+4. G3.27B.4 — Identity, authorization and secure sessions
+5. G3.27B.5 — Dashboard, Resources and Resource Details
+6. G3.27B.6 — Interactive infrastructure topology
+7. G3.27B.7 — Operations, approvals, History and auditing
+8. G3.27B.8 — Provider administration and multi-user settings
+9. G3.27B.9 — HTTPS hosting and deployment
+10. G3.27B.10 — Functional and security acceptance
+11. G3.27B.11 — Controlled publication and release acceptance
+
+### Web application contract
+
+The browser edition shall not require users to install
+the desktop application.
+
+Provider packages shall be managed on trusted servers by
+authorized administrators, not downloaded into browsers.
+
+Cloud credentials and privileged tokens must not be
+embedded into browser-delivered code.
+
+Multi-user access requires appropriate authentication,
+authorization, auditing, session protection and tenant isolation.
+
+The desktop edition must remain independently usable
+without the web edition or a separately hosted web server.
+
+## Shared G3.27A / G3.27B Architecture Requirements
+
+- One platform, two deployment editions.
+- Shared business logic and provider contracts.
+- Deployment-specific interfaces and security boundaries.
+- Provider states distinguish installed, configured,
+  authenticated, connected, discovering, ready and failed.
+- Optional providers must be signed and version-compatible.
+- Preserve existing functionality and security controls.
+- G3.21–G3.27 functional acceptance remains pending.
+- G3.28 remains paused until separately authorized.
+
+Supporting documents:
+
+- `docs/G3.27A-G3.27B-Architecture-and-Deployment.md`
+- `docs/G3.27A-Backend-Dependency-Inventory.md`

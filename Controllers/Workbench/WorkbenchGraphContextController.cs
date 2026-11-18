@@ -87,4 +87,21 @@ public sealed class WorkbenchGraphContextController
             selected.Id,
             depth);
     }
+
+    /// <summary>
+    /// Builds an infrastructure-wide view without changing the
+    /// selected resource or neighborhood navigation contract.
+    /// </summary>
+    public TopologyView BuildFullInfrastructureTopology()
+    {
+        var graphIndex = _state.InfrastructureGraphIndex;
+
+        if (graphIndex is null)
+        {
+            return new TopologyView();
+        }
+
+        return new InfrastructureTopologyProjector(
+            graphIndex).ProjectFullInfrastructure();
+    }
 }
