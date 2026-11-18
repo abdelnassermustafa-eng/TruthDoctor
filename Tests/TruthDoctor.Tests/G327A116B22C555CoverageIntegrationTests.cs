@@ -340,4 +340,42 @@ public sealed class G327A116B22C555CoverageIntegrationTests
 
         Assert.Null(adapter.LastCloudTrailCoverageReport);
     }
+
+    [Fact]
+    public async Task DesktopSessionOptInControlsCloudTrailLookup()
+    {
+        var fixture = new Fixture();
+
+        string? setting = Environment.GetEnvironmentVariable(
+            "TRUTHDOCTOR_AWS_CLOUDTRAIL");
+
+        bool enabled = string.Equals(
+            setting, "1", StringComparison.Ordinal);
+
+        var session = new StandaloneAwsDesktopSession(
+            "synthetic-profile",
+            new[] { "us-east-1" },
+            fixture.Run);
+
+        var workbench = new TruthDoctor.State.WorkbenchState();
+
+        var platform = await session.DiscoverAsync(
+            workbench,
+            cancellationToken: CancellationToken.None);
+
+        Assert.NotNull(platform);
+        Assert.True(fixture.StsCalls > 0);
+
+        if (enabled)
+        {
+            Assert.True(
+                fixture.TrailCalls > 0,
+                "Opted-in discovery must invoke synthetic CloudTrail.");
+        }
+        else
+        {
+            Assert.Equal(0, fixture.TrailCalls);
+        }
+    }
+
 }

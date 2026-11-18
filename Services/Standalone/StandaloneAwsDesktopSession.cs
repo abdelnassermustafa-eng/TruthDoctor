@@ -74,6 +74,10 @@ public sealed class StandaloneAwsDesktopSession
             includeNetworking: string.Equals(
                 Environment.GetEnvironmentVariable(
                     "TRUTHDOCTOR_AWS_NETWORKING"),
+                "1", StringComparison.Ordinal),
+            enableCloudTrailCreationEvidence: string.Equals(
+                Environment.GetEnvironmentVariable(
+                    "TRUTHDOCTOR_AWS_CLOUDTRAIL"),
                 "1", StringComparison.Ordinal));
 
         var lifecycle = _runtime.ConnectionLifecycle;
