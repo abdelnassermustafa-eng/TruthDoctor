@@ -963,14 +963,14 @@ records the original v3.0 adoption baseline and is not the current status.
 865809f feat: manage topology saved views
 ```
 
-## G3.20.1 — Canonical Provider-Neutral Resource Search
+### Historical completion record: G3.20.1 — Canonical Provider-Neutral Resource Search
 **Status:** Complete
 
 ```text
 7286464 feat: unify workbench resource search
 ```
 
-## G3.20.2 — Topology Global Search
+### Historical completion record: G3.20.2 — Topology Global Search
 **Status:** Complete
 
 ```text
@@ -1116,6 +1116,18 @@ Automated and manual validation across every workspace.
 
 ## G3.27 — Operational History Foundation
 
+**Reconciled development status (C13.3):** Substantial provider-neutral
+history contracts, attribution models, filtering, retention, integrity
+declarations, tests, and read-only Workbench History presentation exist.
+These implementations must not be treated as absent or recreated.
+
+**Acceptance boundary:** Caller-reported approval and integrity data
+do not independently authenticate provenance or execution authority.
+The History presentation does not independently discover or persist
+events. Durable audit capture, enforcement, and end-to-end integration
+acceptance remain separate requirements.
+
+
 ### G3.27.1 — History Event Model
 ### G3.27.2 — Actor / Who
 ### G3.27.3 — Timestamp / When
@@ -1134,6 +1146,19 @@ Automated and manual validation across every workspace.
 ### G3.27.16 — History UI v1
 
 ## G3.28 — Operations Workspace v1
+
+**Reconciled status:** Paused pending separate implementation
+authorization. Existing provider-neutral operation contracts,
+planning, risk, approvals, verification, recovery, search, and
+navigation are implementation foundations, not proof of a complete
+executable Operations Workspace.
+
+The first guarded infrastructure-changing AWS operation, enforced
+runtime authorization, end-to-end execution, and post-execution
+verification have not been accepted as implemented.
+
+UX modernization is tracked separately as UX-V3.
+
 
 ### G3.28.1 — Operations Dashboard
 ### G3.28.2 — Resource Search
@@ -1375,13 +1400,36 @@ Its long-term integrated engineering vision is:
 
 That promise governs every future provider, workspace, operation, report, automation, integration, administration function, and AI capability.
 
+## UX-V3 — Enterprise UX Modernization (separate workstream)
+
+**Status:** Paused pending separate authorization.
+**Identifier:** Provisional tracking designation approved for roadmap
+reconciliation; not a replacement for any G3.x milestone.
+
+Existing work includes the Professional Light default, provider-neutral
+appearance contracts for Professional Light, Professional Dark and
+Follow System, Avalonia theme adaptation, semantic theme resources,
+and Workbench/Topology readability and contrast improvements.
+
+Remaining UX acceptance must be evaluated independently, including
+user-facing theme selection and persistence, Professional Dark visual
+acceptance, focus and keyboard accessibility, responsive controls,
+and cross-platform presentation quality.
+
+Preserve the existing resizable Resource Details layout. UX-V3 must
+not redefine G3.28 Operations Workspace or imply that its operational
+lifecycle has been implemented.
+
+
 ---
 
 **END OF AUTHORITATIVE ROADMAP v3.1**
 
 ## G3.27A — Standalone Desktop and Universal Provider Deployment
 
-**Status:** Planned. G3.28 remains paused.
+**Status:** In progress; development baseline published, full
+standalone release acceptance pending. G3.28 Operations
+Workspace v1 remains paused.
 
 ### Product objective
 
@@ -1405,6 +1453,20 @@ the historical TruthApi application.
 9. G3.27A.9 — G3.21–G3.27 functional acceptance
 10. G3.27A.10 — Cross-platform packaging and clean-machine testing
 11. G3.27A.11 — Controlled publication and release acceptance
+
+### Reconciled C13.2 CloudTrail development evidence
+
+The optional AWS CloudTrail resource-creation evidence integration was
+published on November 18, 2026, at commit
+`6e49089a355632c97fbee24d9683063bfcdf19a1`.
+
+- Full offline regression at publication: 3860/3860 passed.
+- CloudTrail enrichment is disabled by default and explicitly opt-in.
+- Initial lookup budget remains limited to 12 resources.
+- Creation evidence requires strict resource identity matching.
+- Live desktop creation-timestamp display has not yet been demonstrated.
+- This development milestone does not establish G3.27A.11
+  customer-ready release acceptance.
 
 ### Installation contract
 
@@ -1460,6 +1522,11 @@ without explicit approval and rollback safeguards.
 ## G3.27B — Browser Application and Enterprise Web Access
 
 **Status:** Planned, not yet implemented.
+
+Desktop domain models, provider contracts, and operation foundations
+may be reused, but do not establish a functioning browser Workbench,
+secure hosted web runtime, or completed browser release acceptance.
+
 
 TruthDoctor V3 shall also support a securely hosted browser
 edition accessed through HTTPS.
